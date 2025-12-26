@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # ============================================================
+  # 공유 인프라 - PostgreSQL
+  # ============================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: wsop-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-wsop_automation}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - wsop-network
+    restart: unless-stopped
+
+  # ============================================================
+  # 모니터링 대시보드 (선택적)
+  # ============================================================
+  monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile.monitor
+    container_name: wsop-monitor
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-wsop_automation}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - wsop-network
+    restart: unless-stopped
+    profiles:
+      - monitor  # docker-compose --profile monitor up 으로 실행
+
+volumes:
+  postgres-data:
+
+networks:
+  wsop-network:
+    driver: bridge
