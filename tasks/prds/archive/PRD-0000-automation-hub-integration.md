@@ -7,7 +7,7 @@
 | **PRD ID** | PRD-0000 |
 | **제목** | WSOP 방송 자동화 통합 허브 (automation_hub) |
 | **부제** | 3개 프로젝트 공유 인프라 + Level 3 오케스트레이션 |
-| **버전** | 1.0 |
+| **버전** | 2.0 (Reliability Update) |
 | **작성일** | 2025-12-26 |
 | **수정일** | 2025-12-26 |
 | **상태** | In Progress |
@@ -332,16 +332,240 @@ POST /api/events/{id}/resolve
 
 ## 4. 기술 스택
 
-| 계층 | 기술 |
-|------|------|
-| **데이터베이스** | PostgreSQL 16 (asyncpg) |
-| **데이터 모델** | Pydantic v2 |
-| **비동기 런타임** | Python async/await |
-| **웹 프레임워크** | FastAPI |
-| **ORM** | SQLAlchemy (asyncio) |
-| **메시지 큐** | Redis (선택적) |
-| **배경 작업** | APScheduler (모니터링 워커) |
-| **문서화** | OpenAPI (Swagger) |
+### 4.1 현재 (v1.0)
+
+| 계층 | 기술 | 비고 |
+|------|------|------|
+| **데이터베이스** | PostgreSQL 16 (asyncpg) | 유지 |
+| **데이터 모델** | Pydantic v2 | 유지 |
+| **비동기 런타임** | Python async/await | 유지 |
+| **웹 프레임워크** | FastAPI | 유지 |
+| **ORM** | SQLAlchemy (asyncio) | 유지 |
+| **작업 분배** | DB Polling | ⚠️ 개선 필요 |
+| **마이그레이션** | init-db.sql (수동) | ⚠️ 개선 필요 |
+| **배경 작업** | APScheduler | 유지 |
+| **실시간 통신** | N/A | ⚠️ 개선 필요 |
+| **문서화** | OpenAPI (Swagger) | 유지 |
+
+### 4.2 제안 (v2.0)
+
+| 계층 | 기술 | 개선 효과 |
+|------|------|---------|
+| **데이터베이스** | PostgreSQL 16 + **Redis 7** | DB 부하 분산, 실시간 작업 분배 |
+| **작업 분배** | **Redis Stream/Queue + arq** | Polling 제거, Latency 1초 이내 |
+| **마이그레이션** | **Alembic** | 코드 기반 자동 마이그레이션 |
+| **실시간 통신** | **WebSocket (FastAPI)** | 새로고침 없이 실시간 업데이트 |
+| **인증** | **Basic Auth / API Key** | 대시보드 보안 강화 |
+
+---
+
+## 4A. 현재 아키텍처 분석 (AS-IS)
+
+### 장점 (Pros)
+
+| # | 장점 | 설명 |
+|---|------|------|
+| 1 | **명확한 관심사 분리** | `shared` 패키지로 3개 서비스가 동일 DTO/DB 로직 공유 |
+| 2 | **비동기 처리 최적화** | async/await + asyncpg로 DB I/O 최적화 |
+| 3 | **코드 품질 관리** | Pydantic v2 타입 검증 + Repository 패턴 캡슐화 |
+| 4 | **확장성 대비** | docker-compose 컨테이너화 |
+
+### 단점 및 위험 요소 (Cons)
+
+| # | 단점 | 영향 | 심각도 |
+|---|------|------|--------|
+| 1 | **DB를 큐로 사용 (Polling)** | 규모 확대 시 DB 부하 증가, Latency 저하 | 높음 |
+| 2 | **좀비 프로세스 처리 부재** | `processing` 상태 작업 영구 정체 (Stuck Job) | 높음 |
+| 3 | **마이그레이션 관리 미흡** | 운영 환경 스키마 변경 시 데이터 손실 위험 | 중간 |
+| 4 | **모니터링 인증 부재** | 대시보드 무단 접근 가능 | 중간 |
+| 5 | **실시간성 부재** | API 호출(새로고침) 의존적 상태 확인 | 낮음 |
+
+---
+
+## 4B. 개선 제안 (To-Be Strategy)
+
+### 개선 1: Redis 기반 Message Queue 도입
+
+**문제**: DB Polling으로 인한 부하 및 지연
+
+**솔루션**: Redis + arq (또는 Celery)를 도입하여 이벤트 기반 작업 분배
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  현재 (v1.0): DB Polling                                    │
+│  automation_sub → PostgreSQL (pending) ← automation_ae     │
+│                   5초마다 polling                           │
+├─────────────────────────────────────────────────────────────┤
+│  제안 (v2.0): Redis Pub/Sub                                 │
+│  automation_sub → PostgreSQL + Redis Stream                │
+│                              ↓ 즉시 이벤트                  │
+│                   automation_ae (Consumer)                  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**docker-compose.yml 추가**:
+```yaml
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - wsop-network
+    restart: unless-stopped
+```
+
+**효과**:
+- Latency: 5초 → 1초 이내
+- DB 부하: 80% 감소 (Polling 제거)
+- 확장성: Consumer Group으로 수평 확장 가능
+
+---
+
+### 개선 2: Zombie Hunter (Stuck Job Recovery)
+
+**문제**: 렌더링 중 서버 크래시 시 `processing` 작업 영구 정체
+
+**솔루션**: 주기적으로 타임아웃된 작업을 감지하고 복구
+
+**새 Repository 메서드**:
+```python
+async def get_stuck_jobs(self, timeout_minutes: int = 10) -> list[RenderInstruction]:
+    """processing 상태가 timeout_minutes 초과한 작업 조회"""
+    query = """
+    SELECT * FROM render_instructions
+    WHERE status = 'processing'
+      AND started_at < NOW() - INTERVAL ':timeout minutes'
+    """
+    return await self.db.execute(query, {"timeout": timeout_minutes})
+
+async def reset_to_pending(self, instruction_id: int) -> bool:
+    """작업을 pending으로 리셋하고 retry_count 증가"""
+    query = """
+    UPDATE render_instructions
+    SET status = 'pending',
+        retry_count = retry_count + 1,
+        started_at = NULL
+    WHERE id = :id AND retry_count < max_retries
+    """
+    return await self.db.execute_write(query, {"id": instruction_id})
+```
+
+**Reaper 프로세스 (APScheduler)**:
+```python
+@scheduler.scheduled_job('interval', minutes=1)
+async def recover_stuck_jobs():
+    repo = RenderInstructionsRepository(db)
+    stuck_jobs = await repo.get_stuck_jobs(timeout_minutes=10)
+
+    for job in stuck_jobs:
+        if job.retry_count < job.max_retries:
+            await repo.reset_to_pending(job.id)
+            # Redis Queue에 재발행 (v2.0)
+            logger.warning(f"Recovered stuck job: {job.id}")
+        else:
+            await repo.update_status(
+                job.id,
+                RenderStatus.FAILED,
+                "Timeout and max retries exceeded"
+            )
+            logger.error(f"Job permanently failed: {job.id}")
+```
+
+**효과**:
+- 작업 유실: 0%
+- 자동 복구율: > 85%
+
+---
+
+### 개선 3: Alembic 마이그레이션 정식 도입
+
+**문제**: init-db.sql 수동 관리로 인한 스키마 변경 위험
+
+**솔루션**: Alembic을 통한 코드 기반 마이그레이션
+
+**도입 단계**:
+1. 기존 스키마를 Alembic 초기 버전으로 캡처
+2. `shared/models` 변경 시 자동 감지: `alembic revision --autogenerate`
+3. 컨테이너 시작 시 자동 적용: `alembic upgrade head`
+
+**디렉토리 구조**:
+```
+automation_hub/
+├── alembic/
+│   ├── versions/
+│   │   └── 001_initial_schema.py
+│   ├── env.py
+│   └── script.py.mako
+├── alembic.ini
+└── shared/
+```
+
+**효과**:
+- 스키마 변경 추적 가능
+- 롤백 지원
+- 다운타임 최소화
+
+---
+
+### 개선 4: WebSocket 실시간 모니터링
+
+**문제**: 대시보드 상태 확인이 API 호출(새로고침) 의존적
+
+**솔루션**: FastAPI WebSocket + PostgreSQL LISTEN/NOTIFY (또는 Redis Pub/Sub)
+
+**새 엔드포인트**:
+```python
+@app.websocket("/ws/dashboard")
+async def dashboard_websocket(websocket: WebSocket):
+    await websocket.accept()
+
+    # Redis Pub/Sub 또는 PostgreSQL LISTEN
+    async for event in subscribe_events():
+        await websocket.send_json({
+            "type": event.type,  # "hand_created", "render_completed", etc.
+            "data": event.data,
+            "timestamp": event.timestamp
+        })
+```
+
+**이벤트 트리거**:
+- Hand 생성 시 → `hand_created` 이벤트
+- RenderInstruction 상태 변경 시 → `instruction_updated` 이벤트
+- RenderOutput 완료 시 → `render_completed` 이벤트
+
+**효과**:
+- 새로고침 없이 실시간 업데이트
+- 운영자 응답 시간 단축
+
+---
+
+### 개선 5: 대시보드 보안 강화
+
+**문제**: 모니터링 대시보드 인증 없음
+
+**솔루션**: Basic Auth 또는 API Key 인증
+
+**FastAPI 미들웨어**:
+```python
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+
+security = HTTPBasic()
+
+@app.get("/api/dashboard")
+async def get_dashboard(credentials: HTTPBasicCredentials = Depends(security)):
+    if not verify_credentials(credentials):
+        raise HTTPException(status_code=401)
+    return await dashboard_service.get_stats()
+```
+
+**환경 변수**:
+```env
+DASHBOARD_USERNAME=admin
+DASHBOARD_PASSWORD=secure_password_here
+```
 
 ---
 
@@ -417,41 +641,149 @@ Monitoring Dashboard
 - [ ] automation_feature_table: automation_hub 동기화
 - [ ] 테스트 및 통합
 
-### 6.3 Phase 3: 모니터링 & 오케스트레이션 (예정)
+### 6.3 Phase 2.5: 안정성 개선 (v2.0 신규)
+
+> gemini.md 분석 결과 반영
+
+#### 6.3.1 Zombie Hunter 구현 (우선순위: 높음)
+- [ ] `RenderInstructionsRepository.get_stuck_jobs()` 메서드 추가
+- [ ] `RenderInstructionsRepository.reset_to_pending()` 메서드 추가
+- [ ] APScheduler 기반 Reaper 프로세스 구현
+- [ ] 타임아웃 임계값 설정 (기본 10분)
+- [ ] 테스트 케이스 작성
+
+#### 6.3.2 Alembic 마이그레이션 도입 (우선순위: 중간)
+- [ ] `alembic init` 초기화
+- [ ] 기존 스키마를 초기 마이그레이션으로 캡처
+- [ ] SQLAlchemy ORM 모델과 동기화
+- [ ] docker-compose에 `alembic upgrade head` 추가
+- [ ] init-db.sql 제거
+
+#### 6.3.3 대시보드 인증 추가 (우선순위: 중간)
+- [ ] FastAPI HTTPBasic 미들웨어 구현
+- [ ] 환경 변수 기반 인증 정보 관리
+- [ ] 테스트 케이스 작성
+
+### 6.4 Phase 3: 모니터링 & 오케스트레이션 (예정)
 - [ ] DB 스키마 확장 (monitoring_events, metrics)
 - [ ] 이상 감지 엔진
 - [ ] 백그라운드 모니터링 워커
 - [ ] API 엔드포인트 구현
 - [ ] 대시보드 (React)
 
+### 6.5 Phase 4: 실시간성 & 확장성 (v2.0 신규)
+
+> gemini.md 분석 결과 반영
+
+#### 6.5.1 Redis 메시지 큐 도입 (우선순위: 높음)
+- [ ] Redis 7 컨테이너 추가 (docker-compose)
+- [ ] Redis 연결 모듈 구현 (`shared/redis/connection.py`)
+- [ ] arq 기반 작업 큐 구현
+- [ ] DB Polling 로직을 Redis 이벤트 기반으로 대체
+- [ ] Consumer Group 설정 (수평 확장 대비)
+
+#### 6.5.2 WebSocket 실시간 업데이트 (우선순위: 중간)
+- [ ] FastAPI WebSocket 엔드포인트 (`/ws/dashboard`)
+- [ ] 이벤트 브로드캐스팅 로직
+- [ ] PostgreSQL LISTEN/NOTIFY 또는 Redis Pub/Sub 연동
+- [ ] 프론트엔드 WebSocket 클라이언트 구현
+
+#### 6.5.3 RenderStatus 열거형 확장 (우선순위: 낮음)
+- [ ] `STALE` 또는 `TIMED_OUT` 상태 추가
+- [ ] 기존 코드 호환성 검토
+
 ---
 
 ## 7. 일정
 
-| Phase | 기간 | 시간 | 상태 |
-|-------|------|------|------|
-| 1 | 2025-12-23 ~ 12-25 | 4시간 | ✅ 완료 |
-| 2 | 2025-12-26 ~ 2026-01-10 | 14시간 | 진행 중 |
-| 3 | 2026-01-13 ~ 2026-01-31 | 12시간 | 예정 |
-| **총합** | **5주** | **30시간** | - |
+| Phase | 설명 | 우선순위 | 상태 |
+|-------|------|----------|------|
+| 1 | 공유 모듈 | - | ✅ 완료 |
+| 2 | 데이터 흐름 통합 | 필수 | 진행 중 |
+| 2.5 | 안정성 개선 (v2.0) | 높음 | 예정 |
+| 3 | 모니터링 & 오케스트레이션 | 필수 | 예정 |
+| 4 | 실시간성 & 확장성 (v2.0) | 중간 | 예정 |
+
+### 권장 구현 순서
+
+```
+Phase 1 (완료)
+    ↓
+Phase 2 (데이터 흐름)
+    ↓
+Phase 2.5 (Zombie Hunter → Alembic → 인증)  ← v2.0 추가
+    ↓
+Phase 3 (모니터링)
+    ↓
+Phase 4 (Redis → WebSocket)  ← v2.0 추가
+```
+
+> **Note**: Phase 2.5와 4는 기존 Phase와 병렬 진행 가능
 
 ---
 
 ## 8. 위험 요소 & 대응
 
+### 8.1 기존 위험 요소
+
 | 위험 | 영향 | 대응 |
 |------|------|------|
 | DB 성능 저하 | 모니터링 지연 | 인덱싱, 파티셔닝 |
-| Polling 부하 증가 | automation_ae CPU 사용량 ↑ | 배치 크기 조정, 주기 변경 |
+| Polling 부하 증가 | automation_ae CPU 사용량 ↑ | **→ Redis 도입 (Phase 4)** |
 | 이상 감지 오탐지 | 거짓 알림 폭증 | 임계값 튜닝, 학습 기간 확보 |
 | 3개 프로젝트 버전 불일치 | 호환성 문제 | Semantic Versioning, 문서화 |
 
+### 8.2 신규 식별 위험 (gemini.md 분석)
+
+| 위험 | 영향 | 심각도 | 대응책 | Phase |
+|------|------|--------|--------|-------|
+| **Stuck Job (좀비 작업)** | 렌더링 서버 크래시 시 작업 영구 정체 | 높음 | Zombie Hunter 구현 | 2.5 |
+| **스키마 마이그레이션 실패** | 운영 환경 데이터 손실 | 중간 | Alembic 도입 | 2.5 |
+| **대시보드 무단 접근** | 보안 취약점 | 중간 | Basic Auth 추가 | 2.5 |
+| **실시간성 부족** | 운영자 응답 지연 | 낮음 | WebSocket 도입 | 4 |
+| **DB 큐 사용** | 규모 확대 시 병목 | 높음 | Redis Stream 도입 | 4 |
+
 ---
 
-## 9. 성공 기준
+## 9. 비기능 요구사항 (v2.0 신규)
+
+### 9.1 성능
+
+| 지표 | 현재 (v1.0) | 목표 (v2.0) |
+|------|------------|-------------|
+| 모니터링 API 응답 시간 | N/A | < 200ms |
+| 렌더링 작업 분배 Latency | 5초 (Polling) | < 1초 (Redis) |
+| 동시 처리 가능 작업 수 | 제한 없음 | 100+ (Consumer Group) |
+
+### 9.2 확장성
+
+| 항목 | 요구사항 |
+|------|---------|
+| 수평 확장 | automation_ae 인스턴스 추가 시 작업 중복 할당 방지 |
+| 클라이언트 호환성 | 기존 `shared` 라이브러리 사용 코드 변경 최소화 |
+
+### 9.3 안정성
+
+| 지표 | 목표값 |
+|------|--------|
+| Stuck Job 복구율 | > 85% |
+| 작업 유실률 | 0% |
+| 자동 재시도 성공률 | > 85% |
+
+### 9.4 보안
+
+| 항목 | 요구사항 |
+|------|---------|
+| 대시보드 인증 | Basic Auth 또는 API Key 필수 |
+| 환경 변수 관리 | 민감 정보 .env 파일 분리 |
+
+---
+
+## 10. 성공 기준
 
 프로젝트 완료는 다음 조건을 만족할 때:
 
+### 10.1 필수 (MVP)
 - [x] Phase 1 완료 (공유 모듈)
 - [ ] Phase 2 완료 (데이터 흐름 통합)
   - [ ] automation_ae InstructionPoller 구현 + 테스트
@@ -463,12 +795,28 @@ Monitoring Dashboard
   - [ ] 이상 감지 엔진 구현
   - [ ] 관리자 개입 API 테스트 완료
   - [ ] 대시보드 UI 구현 (React)
+
+### 10.2 안정성 개선 (v2.0)
+- [ ] Phase 2.5 완료
+  - [ ] Zombie Hunter 구현 및 테스트
+  - [ ] Alembic 마이그레이션 도입
+  - [ ] 대시보드 인증 추가
+
+### 10.3 실시간성 & 확장성 (v2.0)
+- [ ] Phase 4 완료
+  - [ ] Redis 메시지 큐 도입
+  - [ ] WebSocket 실시간 업데이트
+  - [ ] Consumer Group 수평 확장 검증
+
+### 10.4 품질 지표
 - [ ] 통합 테스트 통과율 > 95%
-- [ ] 성능 지표 달성 (응답시간, 정확도 등)
+- [ ] 모니터링 API 응답 시간 < 200ms
+- [ ] Stuck Job 복구율 > 85%
+- [ ] 렌더링 Latency < 1초 (Phase 4 완료 시)
 
 ---
 
-## 10. 참고 문서
+## 11. 참고 문서
 
 ### 공유 모듈
 - `D:\AI\claude01\automation_hub\CLAUDE.md`
@@ -481,8 +829,12 @@ Monitoring Dashboard
 - PRD-WSOP-Sub: automation_sub
 - PRD-WSOP-AE: automation_ae
 
+### v2.0 분석 문서
+- `D:\AI\claude01\automation_hub\gemini.md` - 아키텍처 분석 및 개선 제안 (Gemini AI)
+
 ---
 
 **문서 작성**: 2025-12-26
+**v2.0 업데이트**: 2025-12-26 (gemini.md 분석 반영)
 **최종 검토**: -
 **승인**: -
