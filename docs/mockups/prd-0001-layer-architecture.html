@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD-0001 계층 구조</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            max-width: 800px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #24243e;
+            margin-bottom: 30px;
+            font-size: 1.6rem;
+        }
+        .layers {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+        .layer {
+            padding: 25px 30px;
+            color: white;
+            position: relative;
+        }
+        .layer::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -10px;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            z-index: 1;
+        }
+        .presentation {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+        .presentation::after { border-top: 10px solid #764ba2; }
+        .application {
+            background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%);
+        }
+        .application::after { border-top: 10px solid #38ef7d; }
+        .domain {
+            background: linear-gradient(90deg, #fc4a1a 0%, #f7b733 100%);
+        }
+        .domain::after { border-top: 10px solid #f7b733; }
+        .infrastructure {
+            background: linear-gradient(90deg, #3a6186 0%, #89253e 100%);
+        }
+        .infrastructure::after { display: none; }
+        .layer-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .layer-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .layer-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .layer-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            backdrop-filter: blur(5px);
+        }
+        .legend {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .legend-title {
+            font-weight: bold;
+            color: #2d3436;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        .legend-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .legend-color.presentation { background: linear-gradient(90deg, #667eea, #764ba2); }
+        .legend-color.application { background: linear-gradient(90deg, #11998e, #38ef7d); }
+        .legend-color.domain { background: linear-gradient(90deg, #fc4a1a, #f7b733); }
+        .legend-color.infrastructure { background: linear-gradient(90deg, #3a6186, #89253e); }
+        .legend-text {
+            font-size: 0.85rem;
+            color: #636e72;
+        }
+        .legend-text strong {
+            color: #2d3436;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>4-Layer Architecture</h1>
+
+        <div class="layers">
+            <div class="layer presentation">
+                <div class="layer-header">
+                    <div class="layer-icon">🌐</div>
+                    <div class="layer-name">Presentation Layer</div>
+                </div>
+                <div class="layer-items">
+                    <span class="item">FastAPI REST API (/api/*)</span>
+                    <span class="item">WebSocket (/ws/dashboard)</span>
+                    <span class="item">Basic Auth / API Key</span>
+                </div>
+            </div>
+
+            <div class="layer application">
+                <div class="layer-header">
+                    <div class="layer-icon">⚙️</div>
+                    <div class="layer-name">Application Layer</div>
+                </div>
+                <div class="layer-items">
+                    <span class="item">AnomalyDetector</span>
+                    <span class="item">ZombieHunter</span>
+                    <span class="item">MetricsCalculator</span>
+                    <span class="item">ActionHandler</span>
+                </div>
+            </div>
+
+            <div class="layer domain">
+                <div class="layer-header">
+                    <div class="layer-icon">🎯</div>
+                    <div class="layer-name">Domain Layer</div>
+                </div>
+                <div class="layer-items">
+                    <span class="item">Hand</span>
+                    <span class="item">RenderInstruction</span>
+                    <span class="item">RenderOutput</span>
+                    <span class="item">RenderStatus (Enum)</span>
+                    <span class="item">HandRank (Enum)</span>
+                </div>
+            </div>
+
+            <div class="layer infrastructure">
+                <div class="layer-header">
+                    <div class="layer-icon">🔧</div>
+                    <div class="layer-name">Infrastructure Layer</div>
+                </div>
+                <div class="layer-items">
+                    <span class="item">HandsRepository</span>
+                    <span class="item">RenderInstructionsRepository</span>
+                    <span class="item">RedisQueue (arq)</span>
+                    <span class="item">Database (PostgreSQL + asyncpg)</span>
+                    <span class="item">Alembic (Migration)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-title">📌 계층별 책임</div>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-color presentation"></div>
+                    <div class="legend-text"><strong>Presentation</strong>: 외부 요청 처리, 인증, API 엔드포인트</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color application"></div>
+                    <div class="legend-text"><strong>Application</strong>: 비즈니스 로직, 이상 감지, 작업 복구</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color domain"></div>
+                    <div class="legend-text"><strong>Domain</strong>: 도메인 모델 (Pydantic), 열거형</div>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color infrastructure"></div>
+                    <div class="legend-text"><strong>Infrastructure</strong>: DB, 큐, 마이그레이션</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

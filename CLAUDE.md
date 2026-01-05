@@ -4,6 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## 요구 사항
+
+- Python ≥ 3.11
+- Docker (PostgreSQL)
+
+---
+
 ## 프로젝트 개요
 
 **automation_hub** - WSOP 방송 자동화 통합 프로젝트 (공유 인프라)
@@ -83,12 +90,14 @@ pytest tests/test_models.py::TestHandModel::test_create_hand -v
 ### 린트 및 타입 체크
 
 ```powershell
-# Ruff 린트 (자동 수정)
+# Ruff 린트 (자동 수정) - E, F, I, W 규칙
 ruff check shared/ --fix
 
 # MyPy 타입 체크 (strict mode)
 mypy shared/
 ```
+
+> **참고**: `asyncio_mode = "auto"` 설정으로 `@pytest.mark.asyncio` 데코레이터 불필요
 
 ### 모니터링 서비스
 
@@ -168,12 +177,16 @@ async with db.session() as _:  # 트랜잭션 시작
 
 ### 3. 환경 변수 관리
 
-```python
-# DatabaseSettings (shared/db/connection.py)에서 .env 자동 파싱
-# .env 파일:
-POSTGRES_HOST=localhost
-POSTGRES_PASSWORD=postgres
-```
+`DatabaseSettings` (shared/db/connection.py)에서 `.env` 자동 파싱:
+
+| 변수 | 기본값 | 설명 |
+|------|--------|------|
+| POSTGRES_HOST | localhost | DB 호스트 |
+| POSTGRES_PORT | 5432 | DB 포트 |
+| POSTGRES_USER | postgres | DB 사용자 |
+| POSTGRES_PASSWORD | postgres | DB 비밀번호 |
+| POSTGRES_DB | wsop_automation | DB 이름 |
+| DEBUG | false | SQL 쿼리 로깅 활성화 |
 
 ---
 

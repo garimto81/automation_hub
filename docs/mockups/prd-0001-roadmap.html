@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD-0001 구현 로드맵</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #1e3c72;
+            margin-bottom: 10px;
+            font-size: 1.6rem;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 35px;
+            font-size: 0.95rem;
+        }
+        .roadmap {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            position: relative;
+        }
+        .roadmap::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 30px;
+            bottom: 30px;
+            width: 4px;
+            background: linear-gradient(180deg, #27ae60 0%, #3498db 50%, #9b59b6 100%);
+            border-radius: 2px;
+        }
+        .phase {
+            display: flex;
+            align-items: flex-start;
+            gap: 25px;
+            padding: 20px 0;
+            position: relative;
+        }
+        .phase-marker {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            z-index: 1;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .phase.completed .phase-marker { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+        .phase.current .phase-marker { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .phase.future .phase-marker { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .phase.optional .phase-marker { background: linear-gradient(135deg, #95a5a6, #7f8c8d); }
+        .phase-content {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .phase.completed .phase-content { border-left: 4px solid #27ae60; }
+        .phase.current .phase-content { border-left: 4px solid #3498db; }
+        .phase.future .phase-content { border-left: 4px solid #9b59b6; }
+        .phase.optional .phase-content { border-left: 4px solid #95a5a6; }
+        .phase-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .phase-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #2d3436;
+        }
+        .status-badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-badge.completed { background: #e8f8f0; color: #27ae60; }
+        .status-badge.current { background: #e3f2fd; color: #3498db; }
+        .status-badge.future { background: #f3e5f5; color: #9b59b6; }
+        .status-badge.optional { background: #ecf0f1; color: #7f8c8d; }
+        .phase-items {
+            list-style: none;
+        }
+        .phase-items li {
+            padding: 6px 0;
+            font-size: 0.9rem;
+            color: #636e72;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .phase-items li::before {
+            content: '•';
+            color: #b2bec3;
+            font-weight: bold;
+        }
+        .phase.completed .phase-items li::before { content: '✓'; color: #27ae60; }
+        .parallel-note {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #856404;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .arrow-connector {
+            text-align: center;
+            padding: 10px 0;
+            color: #b2bec3;
+            font-size: 1.5rem;
+            margin-left: 27px;
+        }
+        .priority-tag {
+            background: #e74c3c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Implementation Roadmap</h1>
+        <p class="subtitle">WSOP Automation Hub v2.0 구현 순서</p>
+
+        <div class="roadmap">
+            <div class="phase completed">
+                <div class="phase-marker">P1</div>
+                <div class="phase-content">
+                    <div class="phase-header">
+                        <span class="phase-title">공유 모듈</span>
+                        <span class="status-badge completed">완료</span>
+                    </div>
+                    <ul class="phase-items">
+                        <li>Hand, RenderInstruction, RenderOutput 모델</li>
+                        <li>PostgreSQL 스키마 (init-db.sql)</li>
+                        <li>Repository 패턴 (CRUD)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="phase current">
+                <div class="phase-marker">P2</div>
+                <div class="phase-content">
+                    <div class="phase-header">
+                        <span class="phase-title">데이터 흐름 통합</span>
+                        <span class="status-badge current">진행중</span>
+                    </div>
+                    <ul class="phase-items">
+                        <li>automation_ae: InstructionPoller 구현</li>
+                        <li>automation_sub: InstructionGenerator 구현</li>
+                        <li>automation_feature_table 동기화</li>
+                        <li>End-to-End 테스트</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="phase future">
+                <div class="phase-marker">P3</div>
+                <div class="phase-content">
+                    <div class="phase-header">
+                        <span class="phase-title">안정성 개선</span>
+                        <span class="status-badge future">v2.0 핵심</span>
+                        <span class="priority-tag">우선</span>
+                    </div>
+                    <ul class="phase-items">
+                        <li>Zombie Hunter (Stuck Job 복구)</li>
+                        <li>Alembic 도입 (자동 마이그레이션)</li>
+                        <li>대시보드 인증 (Basic Auth)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="phase future">
+                <div class="phase-marker">P4</div>
+                <div class="phase-content">
+                    <div class="phase-header">
+                        <span class="phase-title">실시간성 & 확장성</span>
+                        <span class="status-badge future">v2.0 확장</span>
+                    </div>
+                    <ul class="phase-items">
+                        <li>Redis 큐 도입 (arq, Consumer Group)</li>
+                        <li>DB Polling 제거 → 이벤트 기반</li>
+                        <li>WebSocket (/ws/dashboard)</li>
+                        <li>RenderStatus 확장 (STALE)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="phase optional">
+                <div class="phase-marker">P5</div>
+                <div class="phase-content">
+                    <div class="phase-header">
+                        <span class="phase-title">모니터링 대시보드</span>
+                        <span class="status-badge optional">선택</span>
+                    </div>
+                    <ul class="phase-items">
+                        <li>이상 감지 엔진</li>
+                        <li>백그라운드 모니터링 워커</li>
+                        <li>React 대시보드 UI</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="parallel-note">
+            <span>⚡</span>
+            <span><strong>참고:</strong> Phase 2~4는 부분적으로 병렬 진행 가능합니다. 단, Zombie Hunter (P3)를 우선 구현하세요.</span>
+        </div>
+    </div>
+</body>
+</html>
