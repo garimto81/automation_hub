@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD-0004: 연출팀 대시보드</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 60px;
+            background: rgba(0,0,0,0.3);
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .sidebar-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .sidebar-icon.active {
+            background: #00b894;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: white;
+            font-size: 1.5rem;
+        }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            background: rgba(0,184,148,0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card-title {
+            color: #2d3436;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+        .tournament-header {
+            background: linear-gradient(135deg, #00b894 0%, #55efc4 100%);
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+        }
+        .tournament-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+        .tournament-stats {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            text-align: center;
+        }
+        .tournament-stats .stat {
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .tournament-stats .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+        .tournament-stats .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .player-list {
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .player-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .player-star {
+            color: #f1c40f;
+            font-size: 1.2rem;
+        }
+        .player-info {
+            flex: 1;
+        }
+        .player-info h4 {
+            color: #2d3436;
+        }
+        .player-info p {
+            color: #636e72;
+            font-size: 0.9rem;
+        }
+        .player-stack {
+            text-align: right;
+        }
+        .player-stack .amount {
+            font-weight: bold;
+            color: #00b894;
+        }
+        .player-stack .position {
+            font-size: 0.8rem;
+            color: #636e72;
+        }
+        .table-layout {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        .table-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .table-box h4 {
+            color: #2d3436;
+            margin-bottom: 8px;
+        }
+        .table-stars {
+            font-size: 1.5rem;
+            color: #f1c40f;
+        }
+        .event-feed {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .event-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px;
+            border-left: 3px solid #ddd;
+            margin-bottom: 8px;
+        }
+        .event-item.elim { border-color: #e74c3c; }
+        .event-item.chip { border-color: #00b894; }
+        .event-item.hand { border-color: #f1c40f; }
+        .event-time {
+            color: #636e72;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        .event-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .event-badge.elim { background: #e74c3c; color: white; }
+        .event-badge.chip { background: #00b894; color: white; }
+        .event-badge.hand { background: #f1c40f; color: #2d3436; }
+        .event-content {
+            flex: 1;
+            color: #2d3436;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .btn-primary { background: #00b894; color: white; }
+        .btn-secondary { background: #ddd; color: #2d3436; }
+        .action-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .legend {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #636e72;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-icon">DB</div>
+        <div class="sidebar-icon">BC</div>
+        <div class="sidebar-icon active">PD</div>
+        <div class="sidebar-icon">EX</div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Production Team</h1>
+            <div class="status-indicator">
+                <span>Tournament Live</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="tournament-header">
+                <h2>WSOP 2025 Main Event - Day 3</h2>
+                <div class="tournament-stats">
+                    <div class="stat">
+                        <div class="stat-label">Level</div>
+                        <div class="stat-value">15</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Blinds</div>
+                        <div class="stat-value">4K/8K/8K</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Players</div>
+                        <div class="stat-value">42/1024</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Avg Stack</div>
+                        <div class="stat-value">$487,619</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Next Break</div>
+                        <div class="stat-value">45:00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="card">
+                <div class="card-title">키 플레이어 관리</div>
+                <div class="player-list">
+                    <div class="player-item">
+                        <span class="player-star">★</span>
+                        <div class="player-info">
+                            <h4>John Doe</h4>
+                            <p>Table: FT-01, Seat: 3</p>
+                        </div>
+                        <div class="player-stack">
+                            <div class="amount">$1.2M</div>
+                            <div class="position">Chip Leader</div>
+                        </div>
+                    </div>
+                    <div class="player-item">
+                        <span class="player-star">★</span>
+                        <div class="player-info">
+                            <h4>Jane Smith</h4>
+                            <p>Table: FT-02, Seat: 7</p>
+                        </div>
+                        <div class="player-stack">
+                            <div class="amount">$890K</div>
+                            <div class="position">2nd</div>
+                        </div>
+                    </div>
+                    <div class="player-item">
+                        <span class="player-star">★</span>
+                        <div class="player-info">
+                            <h4>Mike Brown</h4>
+                            <p>Table: FT-01, Seat: 8</p>
+                        </div>
+                        <div class="player-stack">
+                            <div class="amount">$650K</div>
+                            <div class="position">3rd</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-btns">
+                    <button class="btn btn-primary">+ Add Key Player</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">테이블 배치</div>
+                <div class="table-layout">
+                    <div class="table-box">
+                        <h4>FT-1</h4>
+                        <div class="table-stars">★★★</div>
+                    </div>
+                    <div class="table-box">
+                        <h4>FT-2</h4>
+                        <div class="table-stars">★☆☆</div>
+                    </div>
+                    <div class="table-box">
+                        <h4>FT-3</h4>
+                        <div class="table-stars">☆☆☆</div>
+                    </div>
+                </div>
+                <div class="legend">
+                    <span class="player-star">★</span> = Key Player
+                </div>
+                <div class="action-btns">
+                    <button class="btn btn-secondary">테이블 재배치</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">실시간 이벤트 피드</div>
+            <div class="event-feed">
+                <div class="event-item elim">
+                    <span class="event-time">10:45</span>
+                    <span class="event-badge elim">ELIM</span>
+                    <span class="event-content">Mike Brown eliminated (42nd - $15K)</span>
+                </div>
+                <div class="event-item chip">
+                    <span class="event-time">10:42</span>
+                    <span class="event-badge chip">CHIP</span>
+                    <span class="event-content">John Doe wins $250K pot (New Chip Leader)</span>
+                </div>
+                <div class="event-item hand">
+                    <span class="event-time">10:38</span>
+                    <span class="event-badge hand">HAND</span>
+                    <span class="event-content">Premium Hand: Royal Flush at FT-01</span>
+                </div>
+                <div class="event-item elim">
+                    <span class="event-time">10:35</span>
+                    <span class="event-badge elim">ELIM</span>
+                    <span class="event-content">Sarah Lee eliminated (43rd - $15K)</span>
+                </div>
+                <div class="event-item chip">
+                    <span class="event-time">10:30</span>
+                    <span class="event-badge chip">CHIP</span>
+                    <span class="event-content">Jane Smith doubles up to $890K</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

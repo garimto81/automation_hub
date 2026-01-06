@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD-0004: System Architecture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 40px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #2d3436;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #4a69bd;
+        }
+        .subtitle {
+            color: #636e72;
+            margin-bottom: 30px;
+        }
+        .section-title {
+            color: #4a69bd;
+            font-size: 1.2rem;
+            margin: 30px 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .architecture {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .layer {
+            border: 2px solid #ddd;
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+        }
+        .layer-title {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: white;
+            padding: 0 10px;
+            font-weight: 600;
+            color: #4a69bd;
+        }
+        .frontend-layer {
+            border-color: #6c5ce7;
+            background: linear-gradient(180deg, rgba(108, 92, 231, 0.1) 0%, rgba(108, 92, 231, 0.05) 100%);
+        }
+        .backend-layer {
+            border-color: #4a69bd;
+            background: linear-gradient(180deg, rgba(74, 105, 189, 0.1) 0%, rgba(74, 105, 189, 0.05) 100%);
+        }
+        .persona-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .persona-box {
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+        }
+        .persona-db {
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+        }
+        .persona-broadcast {
+            background: linear-gradient(135deg, #e74c3c 0%, #ff7675 100%);
+        }
+        .persona-production {
+            background: linear-gradient(135deg, #00b894 0%, #55efc4 100%);
+        }
+        .persona-external {
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+        }
+        .persona-box small {
+            display: block;
+            font-weight: 400;
+            margin-top: 5px;
+            opacity: 0.9;
+            font-size: 0.8rem;
+        }
+        .state-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .state-box h4 {
+            color: #4a69bd;
+            margin-bottom: 10px;
+        }
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        .tech-tag {
+            background: #4a69bd;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+        }
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        .api-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .api-box h4 {
+            color: #4a69bd;
+            margin-bottom: 5px;
+        }
+        .api-box small {
+            color: #636e72;
+        }
+        .arrow {
+            text-align: center;
+            font-size: 2rem;
+            color: #4a69bd;
+            margin: 10px 0;
+        }
+        .db-box {
+            background: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        .db-box h4 {
+            margin-bottom: 10px;
+        }
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PRD-0004: WSOP Automation Hub 시스템 아키텍처</h1>
+        <p class="subtitle">4개 페르소나 기반 통합 프론트엔드 대시보드</p>
+
+        <div class="architecture">
+            <!-- Frontend Layer -->
+            <div class="layer frontend-layer">
+                <span class="layer-title">Frontend (React + TypeScript)</span>
+
+                <div class="persona-grid">
+                    <div class="persona-box persona-db">
+                        DB 운영자
+                        <small>Hand 입력 / 렌더링 관리</small>
+                    </div>
+                    <div class="persona-box persona-broadcast">
+                        방송 관리자
+                        <small>방송 모니터링 / 핸드 선택</small>
+                    </div>
+                    <div class="persona-box persona-production">
+                        연출팀
+                        <small>키 플레이어 / 대회 현황</small>
+                    </div>
+                    <div class="persona-box persona-external">
+                        외부 협력팀
+                        <small>소스 모니터링 / 전송</small>
+                    </div>
+                </div>
+
+                <div class="state-box">
+                    <h4>State Management</h4>
+                    <div class="tech-tags">
+                        <span class="tech-tag">TanStack Query</span>
+                        <span class="tech-tag">Zustand</span>
+                        <span class="tech-tag">WebSocket</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="arrow">↓ HTTP / WebSocket ↓</div>
+
+            <!-- Backend Layer -->
+            <div class="layer backend-layer">
+                <span class="layer-title">Backend (FastAPI)</span>
+
+                <div class="api-grid">
+                    <div class="api-box">
+                        <h4>REST API</h4>
+                        <small>/api/v1/*</small>
+                    </div>
+                    <div class="api-box">
+                        <h4>WebSocket</h4>
+                        <small>/ws (tables, events, sources)</small>
+                    </div>
+                    <div class="api-box">
+                        <h4>Auth</h4>
+                        <small>Basic Auth / Role</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="arrow">↓ Repository Pattern ↓</div>
+
+            <!-- Database Layer -->
+            <div class="db-box">
+                <h4>PostgreSQL</h4>
+                <div class="tech-tags">
+                    <span class="tech-tag" style="background: #636e72;">hands</span>
+                    <span class="tech-tag" style="background: #636e72;">tournaments</span>
+                    <span class="tech-tag" style="background: #636e72;">render_instructions</span>
+                    <span class="tech-tag" style="background: #636e72;">render_outputs</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #6c5ce7, #a29bfe);"></div>
+                <span>DB 운영자</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #e74c3c, #ff7675);"></div>
+                <span>방송 관리자</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #00b894, #55efc4);"></div>
+                <span>연출팀</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: linear-gradient(135deg, #fdcb6e, #e17055);"></div>
+                <span>외부 협력팀</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

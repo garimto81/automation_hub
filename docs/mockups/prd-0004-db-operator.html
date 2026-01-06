@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD-0004: DB 운영자 대시보드</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 60px;
+            background: rgba(0,0,0,0.3);
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .sidebar-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+        }
+        .sidebar-icon.active {
+            background: #6c5ce7;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: white;
+            font-size: 1.5rem;
+        }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            background: rgba(0,184,148,0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #00b894;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .tab.active {
+            background: #6c5ce7;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        .card-title {
+            color: #2d3436;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            color: #636e72;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #6c5ce7;
+            outline: none;
+        }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+        }
+        .poker-card {
+            aspect-ratio: 2/3;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .poker-card.selected {
+            border-color: #6c5ce7;
+            background: #f0e6ff;
+        }
+        .poker-card.spade, .poker-card.club { color: #2d3436; }
+        .poker-card.heart, .poker-card.diamond { color: #e74c3c; }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #6c5ce7;
+            color: white;
+        }
+        .btn-secondary {
+            background: #ddd;
+            color: #2d3436;
+        }
+        .render-queue {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .queue-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .queue-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+        .queue-item .template {
+            flex: 1;
+            font-weight: 600;
+        }
+        .queue-item .id {
+            color: #636e72;
+            font-size: 0.9rem;
+        }
+        .priority-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .priority-high { background: #ff7675; color: white; }
+        .priority-medium { background: #fdcb6e; color: #2d3436; }
+        .priority-low { background: #00b894; color: white; }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            color: #636e72;
+            font-weight: 600;
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        .status-success { background: #d4edda; color: #155724; }
+        .action-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-icon active">DB</div>
+        <div class="sidebar-icon">BC</div>
+        <div class="sidebar-icon">PD</div>
+        <div class="sidebar-icon">EX</div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>DB Operator Dashboard</h1>
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span>실시간 연결</span>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active">Hand 입력</button>
+            <button class="tab">렌더링 관리</button>
+            <button class="tab">데이터 조회</button>
+        </div>
+
+        <div class="content-grid">
+            <div class="card">
+                <div class="card-title">수작업 Hand 입력 폼</div>
+
+                <div class="form-group">
+                    <label>Table ID</label>
+                    <select>
+                        <option>FT-01 (Feature Table 1)</option>
+                        <option>FT-02 (Feature Table 2)</option>
+                        <option>FT-03 (Feature Table 3)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Hand Number</label>
+                    <input type="number" placeholder="123">
+                </div>
+
+                <div class="form-group">
+                    <label>Community Cards</label>
+                    <div class="card-grid">
+                        <div class="poker-card selected spade">A♠</div>
+                        <div class="poker-card selected heart">K♥</div>
+                        <div class="poker-card selected diamond">Q♦</div>
+                        <div class="poker-card">+</div>
+                        <div class="poker-card">+</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Winner</label>
+                    <select>
+                        <option>John Doe (Seat 3)</option>
+                        <option>Jane Smith (Seat 7)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Pot Size</label>
+                    <input type="text" placeholder="$125,000">
+                </div>
+
+                <div class="action-btns">
+                    <button class="btn btn-secondary">Cancel</button>
+                    <button class="btn btn-primary">Submit Hand</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    렌더링 큐
+                    <span style="color: #636e72; font-size: 0.9rem;">5 pending</span>
+                </div>
+
+                <div class="render-queue">
+                    <div class="queue-item">
+                        <input type="checkbox" checked>
+                        <span class="template">premium_hand</span>
+                        <span class="id">#45</span>
+                        <span class="priority-badge priority-high">P1</span>
+                    </div>
+                    <div class="queue-item">
+                        <input type="checkbox">
+                        <span class="template">elimination</span>
+                        <span class="id">#44</span>
+                        <span class="priority-badge priority-medium">P5</span>
+                    </div>
+                    <div class="queue-item">
+                        <input type="checkbox">
+                        <span class="template">leaderboard</span>
+                        <span class="id">#43</span>
+                        <span class="priority-badge priority-medium">P5</span>
+                    </div>
+                    <div class="queue-item">
+                        <input type="checkbox">
+                        <span class="template">chip_leader</span>
+                        <span class="id">#42</span>
+                        <span class="priority-badge priority-low">P8</span>
+                    </div>
+                    <div class="queue-item">
+                        <input type="checkbox">
+                        <span class="template">intro</span>
+                        <span class="id">#41</span>
+                        <span class="priority-badge priority-low">P10</span>
+                    </div>
+                </div>
+
+                <div class="action-btns">
+                    <button class="btn btn-secondary">우선순위 변경</button>
+                    <button class="btn btn-primary">렌더 실행</button>
+                </div>
+            </div>
+
+            <div class="card full-width">
+                <div class="card-title">
+                    최근 입력 데이터
+                    <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.9rem;">Export CSV</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Table</th>
+                            <th>Hand #</th>
+                            <th>Source</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>45</td>
+                            <td>FT-01</td>
+                            <td>123</td>
+                            <td>Manual</td>
+                            <td><span class="status-badge status-success">✓ Saved</span></td>
+                            <td>10:30</td>
+                        </tr>
+                        <tr>
+                            <td>44</td>
+                            <td>FT-02</td>
+                            <td>67</td>
+                            <td>RFID</td>
+                            <td><span class="status-badge status-success">✓ Saved</span></td>
+                            <td>10:28</td>
+                        </tr>
+                        <tr>
+                            <td>43</td>
+                            <td>FT-01</td>
+                            <td>122</td>
+                            <td>CSV</td>
+                            <td><span class="status-badge status-success">✓ Saved</span></td>
+                            <td>10:25</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

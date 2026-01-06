@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD-0004: 외부 협력팀 대시보드</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 60px;
+            background: rgba(0,0,0,0.3);
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .sidebar-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .sidebar-icon.active {
+            background: linear-gradient(135deg, #fdcb6e, #e17055);
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: white;
+            font-size: 1.5rem;
+        }
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            background: rgba(253,203,110,0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card-title {
+            color: #2d3436;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+        .source-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        .source-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid transparent;
+        }
+        .source-card.active {
+            border-color: #00b894;
+        }
+        .source-card.standby {
+            border-color: #b2bec3;
+        }
+        .source-card h4 {
+            color: #2d3436;
+            margin-bottom: 10px;
+        }
+        .source-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-standby {
+            background: #e2e3e5;
+            color: #636e72;
+        }
+        .source-status .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .status-active .dot { background: #00b894; }
+        .status-standby .dot { background: #b2bec3; }
+        .source-specs {
+            color: #636e72;
+            font-size: 0.9rem;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .output-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .output-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .output-check {
+            font-size: 1.2rem;
+        }
+        .output-check.ready { color: #00b894; }
+        .output-check.pending { color: #b2bec3; }
+        .output-info {
+            flex: 1;
+        }
+        .output-info h4 {
+            color: #2d3436;
+        }
+        .output-info p {
+            color: #636e72;
+            font-size: 0.85rem;
+        }
+        .dest-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .dest-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .dest-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+        .dest-item label {
+            flex: 1;
+            font-weight: 600;
+            color: #2d3436;
+        }
+        .log-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .log-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px;
+            border-left: 3px solid #ddd;
+            margin-bottom: 8px;
+        }
+        .log-item.success { border-color: #00b894; }
+        .log-item.error { border-color: #e74c3c; }
+        .log-time {
+            color: #636e72;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        .log-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .log-badge.espn { background: #e74c3c; color: white; }
+        .log-badge.pokergo { background: #4a69bd; color: white; }
+        .log-badge.error { background: #636e72; color: white; }
+        .log-content {
+            flex: 1;
+            color: #2d3436;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .btn-primary { background: linear-gradient(135deg, #fdcb6e, #e17055); color: white; }
+        .btn-secondary { background: #ddd; color: #2d3436; }
+        .action-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-icon">DB</div>
+        <div class="sidebar-icon">BC</div>
+        <div class="sidebar-icon">PD</div>
+        <div class="sidebar-icon active">EX</div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>External Partners</h1>
+            <div class="status-indicator">
+                <span>Sources Active</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">방송 소스 상태</div>
+            <div class="source-grid">
+                <div class="source-card active">
+                    <h4>Main Feed</h4>
+                    <div class="source-status status-active">
+                        <span class="dot"></span> Active
+                    </div>
+                    <div class="source-specs">
+                        <div>1920x1080</div>
+                        <div>60fps</div>
+                    </div>
+                </div>
+                <div class="source-card active">
+                    <h4>Table Cam</h4>
+                    <div class="source-status status-active">
+                        <span class="dot"></span> Active
+                    </div>
+                    <div class="source-specs">
+                        <div>1920x1080</div>
+                        <div>30fps</div>
+                    </div>
+                </div>
+                <div class="source-card standby">
+                    <h4>Player Cam</h4>
+                    <div class="source-status status-standby">
+                        <span class="dot"></span> Standby
+                    </div>
+                    <div class="source-specs">
+                        <div>1920x1080</div>
+                        <div>30fps</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="card">
+                <div class="card-title">렌더링 출력 현황</div>
+                <div class="output-list">
+                    <div class="output-item">
+                        <span class="output-check ready">✓</span>
+                        <div class="output-info">
+                            <h4>Leaderboard</h4>
+                            <p>Ready • 2.5MB</p>
+                        </div>
+                    </div>
+                    <div class="output-item">
+                        <span class="output-check ready">✓</span>
+                        <div class="output-info">
+                            <h4>Premium Hand</h4>
+                            <p>Ready • 4.2MB</p>
+                        </div>
+                    </div>
+                    <div class="output-item">
+                        <span class="output-check pending">○</span>
+                        <div class="output-info">
+                            <h4>Elimination</h4>
+                            <p>Pending • --</p>
+                        </div>
+                    </div>
+                    <div class="output-item">
+                        <span class="output-check ready">✓</span>
+                        <div class="output-info">
+                            <h4>Chip Count</h4>
+                            <p>Ready • 1.8MB</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-btns">
+                    <button class="btn btn-secondary">Preview</button>
+                    <button class="btn btn-primary">Download All</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">전송 대상</div>
+                <div class="dest-list">
+                    <div class="dest-item">
+                        <input type="checkbox" id="espn" checked>
+                        <label for="espn">ESPN</label>
+                    </div>
+                    <div class="dest-item">
+                        <input type="checkbox" id="pokergo" checked>
+                        <label for="pokergo">PokerGO</label>
+                    </div>
+                    <div class="dest-item">
+                        <input type="checkbox" id="social">
+                        <label for="social">Social Media</label>
+                    </div>
+                </div>
+                <div class="action-btns">
+                    <button class="btn btn-secondary">일시정지</button>
+                    <button class="btn btn-primary">전송 시작</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">전송 로그</div>
+            <div class="log-list">
+                <div class="log-item success">
+                    <span class="log-time">10:45</span>
+                    <span class="log-badge espn">ESPN</span>
+                    <span class="log-content">Leaderboard sent successfully</span>
+                </div>
+                <div class="log-item success">
+                    <span class="log-time">10:42</span>
+                    <span class="log-badge pokergo">PokerGO</span>
+                    <span class="log-content">Premium Hand sent successfully</span>
+                </div>
+                <div class="log-item error">
+                    <span class="log-time">10:38</span>
+                    <span class="log-badge error">ERROR</span>
+                    <span class="log-content">Social Media timeout - retry queued</span>
+                </div>
+                <div class="log-item success">
+                    <span class="log-time">10:35</span>
+                    <span class="log-badge espn">ESPN</span>
+                    <span class="log-content">Chip Count sent successfully</span>
+                </div>
+                <div class="log-item success">
+                    <span class="log-time">10:30</span>
+                    <span class="log-badge pokergo">PokerGO</span>
+                    <span class="log-content">Leaderboard sent successfully</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

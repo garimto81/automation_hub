@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD-0004: 방송 관리자 대시보드</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+        }
+        .sidebar {
+            width: 60px;
+            background: rgba(0,0,0,0.3);
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .sidebar-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .sidebar-icon.active {
+            background: #e74c3c;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: white;
+            font-size: 1.5rem;
+        }
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            background: rgba(231,76,60,0.8);
+            padding: 8px 15px;
+            border-radius: 20px;
+            animation: live-pulse 1.5s infinite;
+        }
+        @keyframes live-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.5); }
+            50% { box-shadow: 0 0 0 10px rgba(231,76,60,0); }
+        }
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card-title {
+            color: #2d3436;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+        .table-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        .table-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .table-card.live {
+            border-color: #e74c3c;
+            background: #fff5f5;
+        }
+        .table-card.ready {
+            border-color: #00b894;
+        }
+        .table-card h3 {
+            color: #2d3436;
+            margin-bottom: 5px;
+        }
+        .table-card .hand-num {
+            color: #636e72;
+            font-size: 0.9rem;
+        }
+        .table-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .status-live { background: #e74c3c; color: white; }
+        .status-ready { background: #00b894; color: white; }
+        .status-idle { background: #b2bec3; color: white; }
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .hand-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .hand-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        .hand-item.selected {
+            background: #fff5f5;
+            border: 2px solid #e74c3c;
+        }
+        .hand-item input[type="radio"] {
+            width: 18px;
+            height: 18px;
+        }
+        .hand-info {
+            flex: 1;
+        }
+        .hand-info h4 {
+            color: #2d3436;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .hand-info .premium {
+            color: #f1c40f;
+        }
+        .hand-info p {
+            color: #636e72;
+            font-size: 0.9rem;
+        }
+        .preview-box {
+            background: #2d3436;
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+        }
+        .board-cards {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .poker-card {
+            width: 50px;
+            height: 70px;
+            background: white;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .poker-card.spade, .poker-card.club { color: #2d3436; }
+        .poker-card.heart, .poker-card.diamond { color: #e74c3c; }
+        .pot-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #f1c40f;
+        }
+        .queue-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .queue-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .queue-num {
+            width: 25px;
+            height: 25px;
+            background: #4a69bd;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        .queue-num.on-air { background: #e74c3c; }
+        .queue-num.next { background: #00b894; }
+        .queue-info { flex: 1; }
+        .queue-info h4 { color: #2d3436; font-size: 0.95rem; }
+        .queue-info p { color: #636e72; font-size: 0.85rem; }
+        .queue-status {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .queue-on-air { background: #e74c3c; color: white; }
+        .queue-next { background: #00b894; color: white; }
+        .queue-queued { background: #b2bec3; color: white; }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .btn-primary { background: #e74c3c; color: white; }
+        .btn-secondary { background: #ddd; color: #2d3436; }
+        .action-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-icon">DB</div>
+        <div class="sidebar-icon active">BC</div>
+        <div class="sidebar-icon">PD</div>
+        <div class="sidebar-icon">EX</div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Broadcast Manager</h1>
+            <div class="live-indicator">
+                🔴 LIVE
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">현재 방송 상황</div>
+            <div class="table-grid">
+                <div class="table-card live">
+                    <h3>FT-01</h3>
+                    <p class="hand-num">Hand #45</p>
+                    <span class="table-status status-live">LIVE</span>
+                </div>
+                <div class="table-card ready">
+                    <h3>FT-02</h3>
+                    <p class="hand-num">Hand #67</p>
+                    <span class="table-status status-ready">Ready</span>
+                </div>
+                <div class="table-card ready">
+                    <h3>FT-03</h3>
+                    <p class="hand-num">Hand #23</p>
+                    <span class="table-status status-ready">Ready</span>
+                </div>
+                <div class="table-card">
+                    <h3>FT-04</h3>
+                    <p class="hand-num">Waiting</p>
+                    <span class="table-status status-idle">Idle</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="card">
+                <div class="card-title">방송 핸드 선택</div>
+                <div class="hand-list">
+                    <div class="hand-item selected">
+                        <input type="radio" name="hand" checked>
+                        <div class="hand-info">
+                            <h4>FT-01 Hand#45 <span class="premium">★</span></h4>
+                            <p>John: A♠K♠ (Winner) - Full House</p>
+                        </div>
+                    </div>
+                    <div class="hand-item">
+                        <input type="radio" name="hand">
+                        <div class="hand-info">
+                            <h4>FT-02 Hand#67</h4>
+                            <p>Mike: Q♥Q♦ - Two Pair</p>
+                        </div>
+                    </div>
+                    <div class="hand-item">
+                        <input type="radio" name="hand">
+                        <div class="hand-info">
+                            <h4>FT-03 Hand#23</h4>
+                            <p>Jane: J♠J♣ - Set</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-btns">
+                    <button class="btn btn-secondary">대기열 추가</button>
+                    <button class="btn btn-primary">방송 전환</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">핸드 미리보기</div>
+                <div class="preview-box">
+                    <p style="margin-bottom: 10px;">Live Preview</p>
+                    <div class="board-cards">
+                        <div class="poker-card spade">A♠</div>
+                        <div class="poker-card heart">K♥</div>
+                        <div class="poker-card diamond">Q♦</div>
+                        <div class="poker-card club">J♣</div>
+                        <div class="poker-card spade">10♠</div>
+                    </div>
+                    <div class="pot-display">Pot: $125,000</div>
+                    <p style="margin-top: 10px; color: #00b894;">Winner: John Doe - Full House</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">방송 대기열</div>
+            <div class="queue-list">
+                <div class="queue-item">
+                    <div class="queue-num on-air">1</div>
+                    <div class="queue-info">
+                        <h4>FT-01 Hand#45</h4>
+                        <p>Premium: Full House</p>
+                    </div>
+                    <span class="queue-status queue-on-air">On Air</span>
+                </div>
+                <div class="queue-item">
+                    <div class="queue-num next">2</div>
+                    <div class="queue-info">
+                        <h4>FT-02 Hand#67</h4>
+                        <p>Standard</p>
+                    </div>
+                    <span class="queue-status queue-next">Next</span>
+                </div>
+                <div class="queue-item">
+                    <div class="queue-num">3</div>
+                    <div class="queue-info">
+                        <h4>FT-03 Hand#23</h4>
+                        <p>Standard</p>
+                    </div>
+                    <span class="queue-status queue-queued">Queued</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
