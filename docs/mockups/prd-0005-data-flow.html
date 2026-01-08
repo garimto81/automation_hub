@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD-0005: Data Flow</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            color: #000000;
+            padding: 16px;
+        }
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        .flow-diagram {
+            border: 2px solid #000;
+            padding: 16px;
+        }
+        .phase-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #000;
+        }
+        .flow-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .source-group {
+            display: flex;
+            gap: 16px;
+        }
+        .node {
+            border: 2px solid #000;
+            padding: 10px 16px;
+            text-align: center;
+            min-width: 100px;
+            background: #fff;
+        }
+        .node-icon {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .node-name {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .node-desc {
+            font-size: 10px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .node-type {
+            font-size: 9px;
+            margin-top: 8px;
+            padding: 2px 8px;
+            border: 1px solid #000;
+            display: inline-block;
+        }
+        .arrow-down {
+            text-align: center;
+            font-size: 24px;
+            padding: 8px 0;
+        }
+        .merge-section {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+        .merge-box {
+            border: 2px solid #000;
+            padding: 20px 60px;
+            text-align: center;
+            background: #fff;
+        }
+        .operator-zone {
+            border: 2px dashed #000;
+            padding: 24px;
+            margin: 24px 0;
+            position: relative;
+        }
+        .operator-label {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            padding: 4px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid #000;
+        }
+        .operator-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+        .arrow-right {
+            font-size: 20px;
+        }
+        .output-section {
+            text-align: center;
+        }
+        .final-node {
+            border: 3px solid #000;
+            padding: 24px 48px;
+            display: inline-block;
+            font-weight: 700;
+        }
+        .legend {
+            margin-top: 32px;
+            padding-top: 16px;
+            border-top: 1px solid #000;
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+        }
+        .legend-box {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #000;
+        }
+        .legend-box.dashed {
+            border-style: dashed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Data Flow Diagram</h1>
+        <div class="subtitle">WSOP Production Data Pipeline</div>
+
+        <div class="flow-diagram">
+            <!-- Phase 1: Sources -->
+            <div class="phase-label">PHASE 1: DATA INPUT</div>
+            <div class="flow-row">
+                <div class="source-group">
+                    <div class="node">
+                        <div class="node-icon">RFID</div>
+                        <div class="node-name">Card Reader</div>
+                        <div class="node-desc">Real-time</div>
+                        <div class="node-type">AUTO</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-icon">WSOP+</div>
+                        <div class="node-name">App Data</div>
+                        <div class="node-desc">CSV → API</div>
+                        <div class="node-type">AUTO</div>
+                    </div>
+                    <div class="node">
+                        <div class="node-icon">+</div>
+                        <div class="node-name">Manual</div>
+                        <div class="node-desc">Operator</div>
+                        <div class="node-type">MANUAL</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="arrow-down">↓</div>
+
+            <!-- Database -->
+            <div class="merge-section">
+                <div class="merge-box">
+                    <div class="node-icon">PostgreSQL</div>
+                    <div class="node-name">Shared Database</div>
+                </div>
+            </div>
+
+            <div class="arrow-down">↓</div>
+
+            <!-- Phase 2 & 3: Operator Zone -->
+            <div class="operator-zone">
+                <div class="operator-label">OPERATOR (1 Person)</div>
+
+                <div class="phase-label" style="margin-top: 8px;">PHASE 2: DATA MANAGEMENT</div>
+                <div class="operator-flow" style="margin-bottom: 24px;">
+                    <div class="node">
+                        <div class="node-icon">✓</div>
+                        <div class="node-name">Verify</div>
+                        <div class="node-type">MANUAL</div>
+                    </div>
+                    <div class="arrow-right">→</div>
+                    <div class="node">
+                        <div class="node-icon">✎</div>
+                        <div class="node-name">Process</div>
+                        <div class="node-type">MANUAL</div>
+                    </div>
+                </div>
+
+                <div class="phase-label">PHASE 3: DATA OUTPUT</div>
+                <div class="operator-flow">
+                    <div class="node">
+                        <div class="node-icon">☐</div>
+                        <div class="node-name">Select</div>
+                        <div class="node-type">MANUAL</div>
+                    </div>
+                    <div class="arrow-right">→</div>
+                    <div class="node">
+                        <div class="node-icon">AE</div>
+                        <div class="node-name">Export</div>
+                        <div class="node-type">AUTO</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="arrow-down">↓</div>
+
+            <!-- Final Output -->
+            <div class="output-section">
+                <div class="final-node">BROADCAST</div>
+            </div>
+
+            <!-- Legend -->
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box"></div>
+                    <span>Process Node</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box dashed"></div>
+                    <span>Operator Zone</span>
+                </div>
+                <div class="legend-item">
+                    <span>[AUTO] Automated</span>
+                </div>
+                <div class="legend-item">
+                    <span>[MANUAL] Operator Action</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

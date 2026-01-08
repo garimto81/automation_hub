@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD-0005: Operator Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            color: #000000;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            min-height: 480px;
+            max-height: 480px;
+            border: 2px solid #000;
+        }
+        /* Sidebar */
+        .sidebar {
+            border-right: 2px solid #000;
+            padding: 16px 0;
+        }
+        .logo {
+            padding: 0 16px 16px;
+            border-bottom: 1px solid #000;
+            margin-bottom: 16px;
+        }
+        .logo-text {
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .logo-sub {
+            font-size: 10px;
+            color: #666;
+        }
+        .nav-section {
+            padding: 0 8px;
+            margin-bottom: 20px;
+        }
+        .nav-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            padding: 0 8px;
+            margin-bottom: 8px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border: 1px solid transparent;
+            font-size: 12px;
+        }
+        .nav-item.active {
+            border: 1px solid #000;
+            background: #f5f5f5;
+        }
+        .nav-icon {
+            width: 16px;
+            height: 16px;
+            border: 1px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+        }
+        .nav-badge {
+            margin-left: auto;
+            font-size: 9px;
+            padding: 2px 6px;
+            border: 1px solid #000;
+        }
+        /* Main Content */
+        .main {
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            border-bottom: 2px solid #000;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn {
+            padding: 6px 12px;
+            font-size: 11px;
+            border: 1px solid #000;
+            background: #fff;
+        }
+        .btn-primary {
+            background: #000;
+            color: #fff;
+        }
+        /* Content Area */
+        .content {
+            flex: 1;
+            padding: 20px;
+        }
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            border: 1px solid #000;
+            padding: 16px;
+        }
+        .stat-label {
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        /* Table */
+        .table-container {
+            border: 1px solid #000;
+        }
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #000;
+        }
+        .table-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .table-filters {
+            display: flex;
+            gap: 8px;
+        }
+        .filter-btn {
+            padding: 4px 10px;
+            font-size: 10px;
+            border: 1px solid #000;
+            background: #fff;
+        }
+        .filter-btn.active {
+            background: #000;
+            color: #fff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px 16px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+            font-size: 11px;
+        }
+        th {
+            background: #f5f5f5;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            border-bottom: 1px solid #000;
+        }
+        .checkbox {
+            width: 14px;
+            height: 14px;
+            border: 1px solid #000;
+        }
+        .checkbox.checked::after {
+            content: "✓";
+            font-size: 10px;
+        }
+        .status-badge {
+            padding: 2px 8px;
+            font-size: 9px;
+            border: 1px solid #000;
+        }
+        .status-verified {
+            background: #f5f5f5;
+        }
+        .status-pending {
+            background: #fff;
+        }
+        .status-error {
+            background: #000;
+            color: #fff;
+        }
+        .hand-preview {
+            display: flex;
+            gap: 2px;
+        }
+        .card {
+            width: 18px;
+            height: 24px;
+            border: 1px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: 700;
+        }
+        .action-btn {
+            padding: 4px 8px;
+            font-size: 9px;
+            border: 1px solid #000;
+            background: #fff;
+        }
+        /* Render Queue */
+        .render-queue {
+            margin-top: 20px;
+            border: 1px solid #000;
+            padding: 16px;
+        }
+        .queue-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .queue-title {
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .queue-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .queue-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .queue-status {
+            width: 8px;
+            height: 8px;
+            border: 1px solid #000;
+        }
+        .queue-status.active {
+            background: #000;
+        }
+        .queue-info {
+            flex: 1;
+        }
+        .queue-name {
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .queue-meta {
+            font-size: 9px;
+            color: #666;
+        }
+        .queue-progress {
+            width: 100px;
+            height: 4px;
+            border: 1px solid #000;
+        }
+        .queue-progress-bar {
+            height: 100%;
+            background: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-text">WSOP Automation</div>
+                <div class="logo-sub">Operator Dashboard</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-label">Phase 2 - Data</div>
+                <div class="nav-item active">
+                    <div class="nav-icon">H</div>
+                    <span>Hand List</span>
+                    <div class="nav-badge">12</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">+</div>
+                    <span>Manual Input</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">!</div>
+                    <span>Verification</span>
+                    <div class="nav-badge">3</div>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-label">Phase 3 - Output</div>
+                <div class="nav-item">
+                    <div class="nav-icon">S</div>
+                    <span>Selection</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">Q</div>
+                    <span>Render Queue</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">O</div>
+                    <span>Outputs</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main">
+            <div class="header">
+                <div class="header-title">Hand List</div>
+                <div class="header-actions">
+                    <button class="btn">Export</button>
+                    <button class="btn">+ Manual</button>
+                    <button class="btn btn-primary">Render (2)</button>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Hands</div>
+                        <div class="stat-value">128</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Verified</div>
+                        <div class="stat-value">115</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Pending</div>
+                        <div class="stat-value">8</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Errors</div>
+                        <div class="stat-value">3</div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <div class="table-title">Recent Hands</div>
+                        <div class="table-filters">
+                            <button class="filter-btn active">All</button>
+                            <button class="filter-btn">RFID</button>
+                            <button class="filter-btn">WSOP+</button>
+                            <button class="filter-btn">Manual</button>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 30px;"></th>
+                                <th>Hand #</th>
+                                <th>Table</th>
+                                <th>Cards</th>
+                                <th>Winner</th>
+                                <th>Pot</th>
+                                <th>Source</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><div class="checkbox checked"></div></td>
+                                <td>#1024</td>
+                                <td>Table 1</td>
+                                <td>
+                                    <div class="hand-preview">
+                                        <div class="card">A♥</div>
+                                        <div class="card">K♥</div>
+                                    </div>
+                                </td>
+                                <td>Player A</td>
+                                <td>$125,000</td>
+                                <td>RFID</td>
+                                <td><span class="status-badge status-verified">Verified</span></td>
+                                <td><button class="action-btn">Render</button></td>
+                            </tr>
+                            <tr>
+                                <td><div class="checkbox checked"></div></td>
+                                <td>#1023</td>
+                                <td>Table 2</td>
+                                <td>
+                                    <div class="hand-preview">
+                                        <div class="card">Q♠</div>
+                                        <div class="card">J♠</div>
+                                    </div>
+                                </td>
+                                <td>Player B</td>
+                                <td>$89,500</td>
+                                <td>WSOP+</td>
+                                <td><span class="status-badge status-verified">Verified</span></td>
+                                <td><button class="action-btn">Render</button></td>
+                            </tr>
+                            <tr>
+                                <td><div class="checkbox"></div></td>
+                                <td>#1022</td>
+                                <td>Table 1</td>
+                                <td>
+                                    <div class="hand-preview">
+                                        <div class="card">10♦</div>
+                                        <div class="card">10♣</div>
+                                    </div>
+                                </td>
+                                <td>Player C</td>
+                                <td>$45,000</td>
+                                <td>Manual</td>
+                                <td><span class="status-badge status-pending">Pending</span></td>
+                                <td><button class="action-btn">Edit</button></td>
+                            </tr>
+                            <tr>
+                                <td><div class="checkbox"></div></td>
+                                <td>#1021</td>
+                                <td>Table 3</td>
+                                <td>
+                                    <div class="hand-preview">
+                                        <div class="card">7♥</div>
+                                        <div class="card">7♠</div>
+                                    </div>
+                                </td>
+                                <td>-</td>
+                                <td>$32,000</td>
+                                <td>RFID</td>
+                                <td><span class="status-badge status-error">Error</span></td>
+                                <td><button class="action-btn">Fix</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Render Queue -->
+                <div class="render-queue">
+                    <div class="queue-header">
+                        <div class="queue-title">Render Queue</div>
+                        <button class="action-btn">View All</button>
+                    </div>
+                    <div class="queue-items">
+                        <div class="queue-item">
+                            <div class="queue-status active"></div>
+                            <div class="queue-info">
+                                <div class="queue-name">Hand #1020 - Table 1</div>
+                                <div class="queue-meta">Processing</div>
+                            </div>
+                            <div class="queue-progress">
+                                <div class="queue-progress-bar" style="width: 65%;"></div>
+                            </div>
+                            <span style="font-size: 10px;">65%</span>
+                        </div>
+                        <div class="queue-item">
+                            <div class="queue-status"></div>
+                            <div class="queue-info">
+                                <div class="queue-name">Hand #1019 - Table 2</div>
+                                <div class="queue-meta">Queued</div>
+                            </div>
+                            <div class="queue-progress">
+                                <div class="queue-progress-bar" style="width: 0%;"></div>
+                            </div>
+                            <span style="font-size: 10px;">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

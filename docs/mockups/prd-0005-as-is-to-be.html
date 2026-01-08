@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD-0005: AS-IS vs TO-BE</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            color: #000000;
+            padding: 40px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 80px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        .section {
+            border: 2px solid #000;
+            padding: 24px;
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #000;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .section-meta {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+        .arrow-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 300;
+            color: #000;
+        }
+        .metrics {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #000;
+        }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #ccc;
+        }
+        .metric-row:last-child { border-bottom: none; }
+        .metric-label { font-size: 13px; }
+        .metric-value { font-size: 13px; font-weight: 700; }
+        .summary {
+            margin-top: 40px;
+            border: 2px solid #000;
+            padding: 24px;
+            text-align: center;
+        }
+        .summary-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        .summary-item {
+            padding: 16px;
+            border: 1px solid #000;
+        }
+        .summary-change {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WSOP Production Workflow</h1>
+        <div class="subtitle">AS-IS vs TO-BE Process Comparison</div>
+
+        <div class="comparison">
+            <!-- AS-IS -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-title">AS-IS</div>
+                    <div class="section-meta">9 Steps / 4 Operators / 90% Manual</div>
+                </div>
+                <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#fff', 'primaryTextColor': '#000', 'primaryBorderColor': '#000', 'lineColor': '#000', 'secondaryColor': '#fff', 'tertiaryColor': '#fff'}}}%%
+flowchart TB
+    A1[GFX] --> A2[Google Sheet]
+    A2 --> A3[Manual Mapping]
+    A3 --> A4[Cue Sheet Upload]
+    A4 --> A5[Manual Download]
+    A5 --> A6[AE Work]
+    A6 --> A7[AE Rendering]
+    A7 --> A8[File Transfer]
+    A8 --> A9[Final Edit]
+                </div>
+                <div class="metrics">
+                    <div class="metric-row">
+                        <span class="metric-label">Process Steps</span>
+                        <span class="metric-value">9</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Operators</span>
+                        <span class="metric-value">4</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Manual Work</span>
+                        <span class="metric-value">90%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="arrow-section">→</div>
+
+            <!-- TO-BE -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-title">TO-BE</div>
+                    <div class="section-meta">5 Steps / 1 Operator / 20% Manual</div>
+                </div>
+                <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#fff', 'primaryTextColor': '#000', 'primaryBorderColor': '#000', 'lineColor': '#000', 'secondaryColor': '#fff', 'tertiaryColor': '#fff'}}}%%
+flowchart TB
+    B1[GFX] --> B2[DB]
+    B2 --> B3[Select]
+    B3 --> B4[AE Export]
+    B4 --> B5[Final Edit]
+                </div>
+                <div class="metrics">
+                    <div class="metric-row">
+                        <span class="metric-label">Process Steps</span>
+                        <span class="metric-value">5</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Operators</span>
+                        <span class="metric-value">1</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Manual Work</span>
+                        <span class="metric-value">20%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary">
+            <div class="summary-title">Improvement Summary</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-change">4 → 1</div>
+                    <div class="summary-label">Operators (75% ↓)</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-change">9 → 5</div>
+                    <div class="summary-label">Steps (44% ↓)</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-change">90% → 20%</div>
+                    <div class="summary-label">Manual Work (78% ↓)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#ffffff',
+                primaryTextColor: '#000000',
+                primaryBorderColor: '#000000',
+                lineColor: '#000000',
+                secondaryColor: '#ffffff',
+                tertiaryColor: '#ffffff',
+                background: '#ffffff',
+                mainBkg: '#ffffff',
+                nodeBorder: '#000000',
+                clusterBkg: '#ffffff',
+                clusterBorder: '#000000',
+                titleColor: '#000000',
+                edgeLabelBackground: '#ffffff'
+            }
+        });
+    </script>
+</body>
+</html>

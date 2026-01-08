@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>PRD-0005: 화면 흐름</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #ffffff;
+            padding: 16px;
+        }
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1A4D8C;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>운영자 UI 화면 흐름</h1>
+
+        <div class="mermaid">
+flowchart LR
+    subgraph Main["메인 화면"]
+        A["📋 Hand 목록<br/>검증/편집"]
+    end
+
+    subgraph Action["작업 화면"]
+        B["☑️ 데이터 선택<br/>체크박스"]
+        C["🎬 렌더링 실행<br/>원클릭"]
+    end
+
+    subgraph Sub["보조 화면"]
+        D["✏️ 수작업 입력<br/>폼 입력"]
+        E["📺 출력물 확인<br/>미리보기"]
+    end
+
+    A --> B
+    B --> C
+    A --> D
+    C --> E
+
+    style Main fill:#E3F2FD,stroke:#1A4D8C,stroke-width:2px
+    style Action fill:#FFF3E0,stroke:#F57C00,stroke-width:2px
+    style Sub fill:#E8F5E9,stroke:#388E3C,stroke-width:2px
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#E3F2FD',
+                primaryTextColor: '#1A4D8C',
+                primaryBorderColor: '#1A4D8C',
+                lineColor: '#666',
+                fontSize: '13px'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 15,
+                nodeSpacing: 50,
+                rankSpacing: 50
+            }
+        });
+    </script>
+</body>
+</html>

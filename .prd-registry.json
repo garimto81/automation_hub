@@ -1,8 +1,8 @@
 {
   "version": "1.0.0",
   "project_name": "automation_hub",
-  "last_updated": "2025-01-05T00:00:00Z",
-  "next_prd_number": 3,
+  "last_updated": "2026-01-08T00:00:00Z",
+  "next_prd_number": 6,
   "prds": {
     "PRD-0000": {
       "title": "Automation Hub Integration",
@@ -30,6 +30,35 @@
       "local_path": "tasks/prds/PRD-0002-conflict-monitoring.md",
       "checklist_path": "docs/checklists/PRD-0002.md",
       "created_at": "2025-01-05"
+    },
+    "PRD-0003": {
+      "title": "프로젝트 간 모델 통합",
+      "slug": "model-unification",
+      "status": "Draft",
+      "priority": "P0",
+      "local_path": "tasks/prds/PRD-0003-model-unification.md",
+      "checklist_path": "docs/checklists/PRD-0003.md",
+      "created_at": "2025-01-07"
+    },
+    "PRD-0004": {
+      "title": "프론트엔드 대시보드",
+      "slug": "frontend-dashboard",
+      "status": "Draft",
+      "priority": "P1",
+      "local_path": "tasks/prds/PRD-0004-frontend-dashboard.md",
+      "checklist_path": "docs/checklists/PRD-0004.md",
+      "created_at": "2025-01-07"
+    },
+    "PRD-0005": {
+      "title": "GG Production 자막 워크 플로우",
+      "slug": "production-workflow",
+      "status": "Draft",
+      "priority": "P0",
+      "local_path": "tasks/prds/PRD-0005-production-workflow.md",
+      "checklist_path": "docs/checklists/PRD-0005.md",
+      "google_doc_id": "1FLeEFriLkLa2eSG_MgnNaVKdKOtVq-iYcVbI07ZsksY",
+      "google_doc_url": "https://docs.google.com/document/d/1FLeEFriLkLa2eSG_MgnNaVKdKOtVq-iYcVbI07ZsksY/edit",
+      "created_at": "2025-01-08"
     }
   }
 }

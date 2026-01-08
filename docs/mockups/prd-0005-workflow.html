@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>PRD-0005: 전체 워크플로우</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #ffffff;
+            padding: 16px;
+        }
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1A4D8C;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .subtitle {
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GG Production 자막 워크 플로우</h1>
+        <p class="subtitle">목표: 4인 → 1인 운영 자동화</p>
+
+        <div class="mermaid">
+flowchart TB
+    subgraph Phase1["Phase 1: 데이터 입력"]
+        direction TB
+        A1[/"🔌 RFID<br/>automation_feature_table"/]
+        A2[/"📄 WSOP+ CSV<br/>외부 연동"/]
+        A3[/"✏️ Manual<br/>운영 관리자"/]
+    end
+
+    subgraph Phase2["Phase 2: 데이터 관리<br/>(automation_sub)"]
+        direction TB
+        B1[("💾 PostgreSQL<br/>DB 저장")]
+        B2["🔍 검증<br/>데이터 정합성"]
+        B3["⚙️ 가공<br/>방송용 편집"]
+    end
+
+    subgraph Phase3["Phase 3: 데이터 출력<br/>(automation_ae)"]
+        direction TB
+        C1["☑️ 선택<br/>방송할 핸드"]
+        C2["🎬 렌더링<br/>AE 템플릿"]
+        C3["📦 출력물<br/>영상 파일"]
+    end
+
+    Phase1 --> Phase2
+    Phase2 --> Phase3
+    Phase3 --> D["📺 최종 편집<br/>방송 송출"]
+
+    A1 --> B1
+    A2 --> B1
+    A3 --> B1
+    B1 --> B2
+    B2 --> B3
+    B3 --> C1
+    C1 --> C2
+    C2 --> C3
+    C3 --> D
+
+    style Phase1 fill:#E3F2FD,stroke:#1A4D8C,stroke-width:2px
+    style Phase2 fill:#FFF3E0,stroke:#F57C00,stroke-width:2px
+    style Phase3 fill:#E8F5E9,stroke:#388E3C,stroke-width:2px
+    style D fill:#FCE4EC,stroke:#C2185B,stroke-width:2px
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#E3F2FD',
+                primaryTextColor: '#1A4D8C',
+                primaryBorderColor: '#1A4D8C',
+                lineColor: '#666',
+                secondaryColor: '#FFF3E0',
+                tertiaryColor: '#E8F5E9',
+                fontSize: '14px'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 10
+            }
+        });
+    </script>
+</body>
+</html>

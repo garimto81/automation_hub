@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>PRD-0005: 시스템 아키텍처</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #ffffff;
+            padding: 16px;
+        }
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1A4D8C;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>시스템 아키텍처</h1>
+
+        <div class="mermaid">
+flowchart TB
+    subgraph Hub["automation_hub (공유 인프라)"]
+        direction TB
+        subgraph Infra["인프라 계층"]
+            DB[("💾 PostgreSQL<br/>데이터")]
+            Redis[("⚡ Redis<br/>작업큐")]
+            API["🌐 FastAPI<br/>모니터링"]
+        end
+
+        subgraph Models["공유 모델 계층"]
+            M1["Hand"]
+            M2["RenderInstruction"]
+            M3["RenderOutput"]
+        end
+
+        Infra --> Models
+    end
+
+    subgraph Projects["프로젝트 계층"]
+        direction LR
+        P1["📥 feature_table<br/>(입력)"]
+        P2["📋 sub<br/>(관리)"]
+        P3["🎬 ae<br/>(출력)"]
+    end
+
+    Models --> P1
+    Models --> P2
+    Models --> P3
+
+    style Hub fill:#F5F5F5,stroke:#1A4D8C,stroke-width:2px
+    style Infra fill:#E3F2FD,stroke:#1A4D8C,stroke-width:1px
+    style Models fill:#FFF8E1,stroke:#F57C00,stroke-width:1px
+    style Projects fill:#E8F5E9,stroke:#388E3C,stroke-width:1px
+    style DB fill:#BBDEFB,stroke:#1565C0
+    style Redis fill:#FFCCBC,stroke:#E64A19
+    style API fill:#C8E6C9,stroke:#388E3C
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#E3F2FD',
+                primaryTextColor: '#1A4D8C',
+                primaryBorderColor: '#1A4D8C',
+                lineColor: '#666',
+                fontSize: '13px'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 10
+            }
+        });
+    </script>
+</body>
+</html>
