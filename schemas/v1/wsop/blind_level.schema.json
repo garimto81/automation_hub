@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-hub/schemas/v1/wsop/blind_level",
+  "title": "Blind Level",
+  "description": "블라인드 레벨 구조",
+  "type": "object",
+  "required": ["level", "small_blind", "big_blind"],
+  "properties": {
+    "level": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "레벨 번호"
+    },
+    "small_blind": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "스몰 블라인드"
+    },
+    "big_blind": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "빅 블라인드"
+    },
+    "ante": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "앤티"
+    },
+    "duration_minutes": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 60,
+      "description": "레벨 지속 시간 (분)"
+    }
+  }
+}

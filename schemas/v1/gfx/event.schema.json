@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-hub/schemas/v1/gfx/event",
+  "title": "PokerGFX Event",
+  "description": "게임 이벤트 (베팅 액션, 보드 카드, 결과 등)",
+  "type": "object",
+  "required": ["Type"],
+  "properties": {
+    "Type": {
+      "$ref": "../common/enums.schema.json#/$defs/EventType",
+      "description": "이벤트 타입"
+    },
+    "Order": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "이벤트 순서 (0부터 시작)"
+    },
+    "PlayerNum": {
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "maximum": 10,
+      "description": "플레이어 번호 (베팅 액션 시)"
+    },
+    "BetAmt": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "베팅 금액"
+    },
+    "PotAmt": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "현재 팟 금액"
+    },
+    "BoardCards": {
+      "$ref": "../common/card.schema.json#/$defs/BoardCards",
+      "description": "보드 카드 (BOARD_CARD 이벤트 시)"
+    },
+    "BoardNum": {
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "description": "보드 번호 (Run It Multiple 시)"
+    },
+    "CardsDrawn": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "드로우한 카드 수 (드로우 게임)"
+    },
+    "WonAmt": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "description": "획득 금액 (WIN 이벤트 시)"
+    },
+    "DateTimeUTC": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "이벤트 발생 시간"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "Type": { "const": "BOARD_CARD" }
+        }
+      },
+      "then": {
+        "required": ["BoardCards"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Type": { "enum": ["BET", "RAISE", "CALL", "ALL_IN"] }
+        }
+      },
+      "then": {
+        "required": ["PlayerNum", "BetAmt"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "Type": { "const": "WIN" }
+        }
+      },
+      "then": {
+        "required": ["PlayerNum", "WonAmt"]
+      }
+    }
+  ],
+  "additionalProperties": true
+}

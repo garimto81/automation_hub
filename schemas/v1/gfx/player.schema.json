@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-hub/schemas/v1/gfx/player",
+  "title": "PokerGFX Player",
+  "description": "핸드 내 플레이어 정보",
+  "type": "object",
+  "required": ["PlayerNum", "Name"],
+  "properties": {
+    "PlayerNum": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "플레이어 번호 (좌석 번호)"
+    },
+    "Name": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "플레이어 이름"
+    },
+    "LongName": {
+      "type": ["string", "null"],
+      "maxLength": 255,
+      "description": "플레이어 전체 이름"
+    },
+    "StartStack": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "default": 0,
+      "description": "핸드 시작 스택"
+    },
+    "EndStack": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "default": 0,
+      "description": "핸드 종료 스택"
+    },
+    "CumulativeWinnings": {
+      "type": ["integer", "null"],
+      "default": 0,
+      "description": "세션 내 누적 수익"
+    },
+    "HoleCards": {
+      "$ref": "../common/card.schema.json#/$defs/HoleCards",
+      "description": "홀카드 (쇼다운 시 공개)"
+    },
+    "SittingOut": {
+      "type": "boolean",
+      "default": false,
+      "description": "앉아있지 않음 (Sitting Out)"
+    },
+    "EliminationRank": {
+      "type": "integer",
+      "default": -1,
+      "description": "탈락 순위 (-1 = 탈락하지 않음)"
+    },
+    "Stats": {
+      "$ref": "#/$defs/PlayerStats",
+      "description": "플레이어 통계"
+    }
+  },
+  "$defs": {
+    "PlayerStats": {
+      "type": "object",
+      "properties": {
+        "VPIPPercent": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "VPIP (Voluntarily Put In Pot) 퍼센트"
+        },
+        "PFRPercent": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "PFR (Pre-Flop Raise) 퍼센트"
+        },
+        "AFPercent": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "AF (Aggression Factor)"
+        },
+        "WTSDPercent": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "WTSD (Went To Showdown) 퍼센트"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

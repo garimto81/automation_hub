@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-hub/schemas/v1/common/enums",
+  "title": "Common Enums",
+  "description": "모든 프로젝트에서 공유하는 enum 타입 정의 (Single Source of Truth)",
+  "$defs": {
+    "GameVariant": {
+      "type": "string",
+      "enum": ["HOLDEM", "OMAHA", "OMAHA_HILO", "STUD", "RAZZ", "DRAW"],
+      "description": "포커 게임 변형"
+    },
+    "GameClass": {
+      "type": "string",
+      "enum": ["FLOP", "DRAW", "STUD"],
+      "description": "게임 클래스 (플랍 게임, 드로우 게임, 스터드 게임)"
+    },
+    "BetStructure": {
+      "type": "string",
+      "enum": ["NOLIMIT", "POTLIMIT", "LIMIT"],
+      "description": "베팅 구조"
+    },
+    "AnteType": {
+      "type": "string",
+      "enum": ["NONE", "BB_ANTE_BB1ST", "BB_ANTE", "TRADITIONAL"],
+      "description": "앤티 타입"
+    },
+    "EventType": {
+      "type": "string",
+      "enum": [
+        "FOLD",
+        "CHECK",
+        "CALL",
+        "BET",
+        "RAISE",
+        "ALL_IN",
+        "BOARD_CARD",
+        "SHOWDOWN",
+        "ANTE",
+        "BLIND",
+        "UNCALLED",
+        "WIN",
+        "MUCK"
+      ],
+      "description": "게임 이벤트 타입"
+    },
+    "HandRank": {
+      "type": "string",
+      "enum": [
+        "royal_flush",
+        "straight_flush",
+        "four_of_a_kind",
+        "full_house",
+        "flush",
+        "straight",
+        "three_of_a_kind",
+        "two_pair",
+        "one_pair",
+        "high_card"
+      ],
+      "description": "포커 핸드 랭킹 (snake_case 표준)"
+    },
+    "HandRankValue": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "핸드 랭킹 숫자값 (1=Royal Flush, 10=High Card)"
+    },
+    "SourceType": {
+      "type": "string",
+      "enum": ["rfid", "csv", "manual"],
+      "description": "데이터 소스 타입"
+    },
+    "RenderStatus": {
+      "type": "string",
+      "enum": ["pending", "processing", "completed", "failed"],
+      "description": "렌더링 상태"
+    },
+    "OutputFormat": {
+      "type": "string",
+      "enum": ["png_sequence", "mov_alpha", "mp4"],
+      "description": "출력 형식"
+    },
+    "TournamentEventType": {
+      "type": "string",
+      "enum": ["HOLDEM", "PLO", "PLO8", "RAZZ", "STUD", "HORSE", "MIXED"],
+      "description": "토너먼트 이벤트 타입"
+    },
+    "AnalysisStatus": {
+      "type": "string",
+      "enum": ["pending", "analyzing", "completed", "failed"],
+      "description": "분석 상태 (AE 콤포지션 분석용)"
+    },
+    "LayerType": {
+      "type": "string",
+      "enum": ["text", "footage", "shape", "precomp", "solid", "camera", "light", "null", "adjustment"],
+      "description": "AE 레이어 타입"
+    },
+    "FootageType": {
+      "type": "string",
+      "enum": ["image", "video", "audio", "solid", "sequence", "other"],
+      "description": "AE Footage 타입"
+    },
+    "CaptionPriority": {
+      "type": "string",
+      "enum": ["P0", "P1", "P2", "P3"],
+      "description": "자막 우선순위 (P0=최고)"
+    }
+  }
+}

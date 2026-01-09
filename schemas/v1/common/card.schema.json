@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-hub/schemas/v1/common/card",
+  "title": "Playing Card",
+  "description": "플레이 카드 표현 (예: As, Kh, Td, 2c)",
+  "$defs": {
+    "Card": {
+      "type": "string",
+      "pattern": "^([2-9TJQKA])([hdcs])$",
+      "description": "카드 표기: 랭크(2-9,T,J,Q,K,A) + 수트(h=hearts, d=diamonds, c=clubs, s=spades)",
+      "examples": ["As", "Kh", "Td", "2c", "Jd", "Qc", "9s"]
+    },
+    "CardRank": {
+      "type": "string",
+      "enum": ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"],
+      "description": "카드 랭크 (T=10)"
+    },
+    "CardSuit": {
+      "type": "string",
+      "enum": ["h", "d", "c", "s"],
+      "description": "카드 수트 (h=hearts, d=diamonds, c=clubs, s=spades)"
+    },
+    "HoleCards": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Card"
+      },
+      "minItems": 0,
+      "maxItems": 4,
+      "description": "홀카드 배열 (HOLDEM=2장, OMAHA=4장)"
+    },
+    "CommunityCards": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Card"
+      },
+      "minItems": 0,
+      "maxItems": 5,
+      "description": "커뮤니티 카드 배열 (Flop=3장, Turn=4장, River=5장)"
+    },
+    "BoardCards": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Card"
+      },
+      "description": "보드 카드 (BOARD_CARD 이벤트에서 사용)"
+    }
+  }
+}

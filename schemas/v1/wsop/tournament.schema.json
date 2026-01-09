@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-hub/schemas/v1/wsop/tournament",
+  "title": "WSOP Tournament",
+  "description": "WSOP+ CSV에서 파싱한 토너먼트 정보",
+  "type": "object",
+  "required": ["name", "event_code"],
+  "properties": {
+    "id": {
+      "type": ["integer", "null"],
+      "description": "DB ID (자동 생성)"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "토너먼트 이름"
+    },
+    "event_code": {
+      "type": "string",
+      "maxLength": 50,
+      "pattern": "^[A-Z0-9]+-[0-9]+$",
+      "description": "이벤트 코드 (예: WSOP2025-001)"
+    },
+    "event_type": {
+      "$ref": "../common/enums.schema.json#/$defs/TournamentEventType",
+      "default": "HOLDEM"
+    },
+    "buy_in": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "바이인 금액 (USD)"
+    },
+    "prize_pool": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "총 상금 (USD)"
+    },
+    "total_entries": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "총 참가자 수"
+    },
+    "remaining_players": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "남은 플레이어 수"
+    },
+    "current_level": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1,
+      "description": "현재 블라인드 레벨"
+    },
+    "blinds": {
+      "type": "array",
+      "items": {
+        "$ref": "blind_level.schema.json"
+      },
+      "description": "블라인드 구조"
+    },
+    "current_blinds": {
+      "$ref": "blind_level.schema.json",
+      "description": "현재 블라인드 정보"
+    },
+    "payouts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/PayoutEntry"
+      },
+      "description": "상금 배분 구조"
+    },
+    "places_paid": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "입상 인원"
+    },
+    "standings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/PlayerStanding"
+      },
+      "description": "순위 정보"
+    },
+    "start_date": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "시작 일시"
+    },
+    "end_date": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "종료 일시"
+    },
+    "source": {
+      "$ref": "../common/enums.schema.json#/$defs/SourceType",
+      "default": "csv"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "PayoutEntry": {
+      "type": "object",
+      "required": ["position", "amount"],
+      "properties": {
+        "position": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "순위"
+        },
+        "position_end": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "description": "범위 끝 (예: 10-12위)"
+        },
+        "amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "상금액 (USD)"
+        },
+        "percentage": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "전체 상금 대비 퍼센트"
+        }
+      }
+    },
+    "PlayerStanding": {
+      "type": "object",
+      "required": ["rank", "name"],
+      "properties": {
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "순위"
+        },
+        "name": {
+          "type": "string",
+          "description": "플레이어 이름"
+        },
+        "nationality": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$",
+          "description": "국적 코드 (ISO 3166-1 alpha-2)"
+        },
+        "chips": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "칩 수"
+        },
+        "table_id": {
+          "type": ["string", "null"],
+          "description": "테이블 ID"
+        },
+        "seat": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "maximum": 10,
+          "description": "좌석 번호"
+        }
+      }
+    }
+  }
+}

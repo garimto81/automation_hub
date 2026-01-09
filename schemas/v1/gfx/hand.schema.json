@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-hub/schemas/v1/gfx/hand",
+  "title": "PokerGFX Hand",
+  "description": "포커 핸드 데이터",
+  "type": "object",
+  "required": ["HandNum"],
+  "properties": {
+    "HandNum": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "핸드 번호"
+    },
+    "GameVariant": {
+      "$ref": "../common/enums.schema.json#/$defs/GameVariant",
+      "default": "HOLDEM"
+    },
+    "GameClass": {
+      "$ref": "../common/enums.schema.json#/$defs/GameClass",
+      "default": "FLOP"
+    },
+    "BetStructure": {
+      "$ref": "../common/enums.schema.json#/$defs/BetStructure",
+      "default": "NOLIMIT"
+    },
+    "Duration": {
+      "type": ["string", "null"],
+      "pattern": "^PT[0-9]+M[0-9]+\\.?[0-9]*S$",
+      "description": "ISO 8601 Duration (예: PT2M56.2628165S)"
+    },
+    "StartDateTimeUTC": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "핸드 시작 시간 (ISO 8601)"
+    },
+    "NumBoards": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1,
+      "description": "보드 개수 (Run It Twice 등)"
+    },
+    "RunItNumTimes": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1,
+      "description": "Run It N Times"
+    },
+    "Players": {
+      "type": "array",
+      "items": {
+        "$ref": "player.schema.json"
+      },
+      "description": "플레이어 배열"
+    },
+    "Events": {
+      "type": "array",
+      "items": {
+        "$ref": "event.schema.json"
+      },
+      "description": "이벤트 배열 (베팅 액션, 보드 카드 등)"
+    },
+    "FlopDrawBlinds": {
+      "$ref": "#/$defs/BlindsInfo",
+      "description": "블라인드/버튼 정보"
+    }
+  },
+  "$defs": {
+    "BlindsInfo": {
+      "type": "object",
+      "properties": {
+        "ButtonPlayerNum": {
+          "type": ["integer", "null"],
+          "description": "버튼 플레이어 번호"
+        },
+        "SmallBlindPlayerNum": {
+          "type": ["integer", "null"],
+          "description": "스몰 블라인드 플레이어 번호"
+        },
+        "SmallBlindAmt": {
+          "type": ["integer", "null"],
+          "description": "스몰 블라인드 금액"
+        },
+        "BigBlindPlayerNum": {
+          "type": ["integer", "null"],
+          "description": "빅 블라인드 플레이어 번호"
+        },
+        "BigBlindAmt": {
+          "type": ["integer", "null"],
+          "description": "빅 블라인드 금액"
+        },
+        "AnteType": {
+          "$ref": "../common/enums.schema.json#/$defs/AnteType",
+          "default": "NONE"
+        },
+        "BlindLevel": {
+          "type": ["integer", "null"],
+          "description": "블라인드 레벨"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

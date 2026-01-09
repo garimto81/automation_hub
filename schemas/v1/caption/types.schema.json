@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-hub/schemas/v1/caption/types",
+  "title": "Caption Types",
+  "description": "26개 자막 타입 정의 (automation_sub)",
+  "type": "object",
+  "$defs": {
+    "CaptionCategory": {
+      "type": "string",
+      "enum": [
+        "Leaderboard",
+        "Player Stats",
+        "Event Info",
+        "Tournament",
+        "Hand Info",
+        "Clock",
+        "Alert",
+        "Social",
+        "Sponsor"
+      ],
+      "description": "자막 카테고리"
+    },
+    "CaptionType": {
+      "type": "object",
+      "required": ["id", "category", "name_ko", "code"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 26,
+          "description": "자막 타입 ID"
+        },
+        "category": {
+          "$ref": "#/$defs/CaptionCategory"
+        },
+        "name_ko": {
+          "type": "string",
+          "description": "한글 이름"
+        },
+        "name_en": {
+          "type": "string",
+          "description": "영어 이름"
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^[a-z_]+$",
+          "description": "코드 (snake_case)"
+        },
+        "data_source": {
+          "type": "string",
+          "description": "데이터 소스 (pokerGFX / WSOP+ CSV / Manual)"
+        },
+        "pre": {
+          "type": "string",
+          "enum": ["O", "-"],
+          "description": "프리-쇼 유무"
+        },
+        "live": {
+          "type": "string",
+          "enum": ["O", "-"],
+          "description": "라이브 유무"
+        },
+        "auto": {
+          "type": "string",
+          "enum": ["O", "-"],
+          "description": "자동화 여부"
+        },
+        "trigger": {
+          "type": "string",
+          "description": "트리거 조건"
+        },
+        "db_tables": {
+          "type": "string",
+          "description": "관련 DB 테이블"
+        },
+        "priority": {
+          "$ref": "../common/enums.schema.json#/$defs/CaptionPriority"
+        },
+        "notes": {
+          "type": "string",
+          "description": "비고"
+        }
+      }
+    }
+  },
+  "properties": {
+    "types": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/CaptionType"
+      },
+      "minItems": 26,
+      "maxItems": 26,
+      "description": "26개 자막 타입 배열"
+    }
+  },
+  "examples": [
+    {
+      "types": [
+        {
+          "id": 1,
+          "category": "Leaderboard",
+          "name_ko": "토너먼트 리더보드",
+          "name_en": "Tournament Leaderboard",
+          "code": "tournament_leaderboard",
+          "data_source": "pokerGFX / WSOP+ CSV",
+          "pre": "-",
+          "live": "O",
+          "auto": "O",
+          "trigger": "hand_completed, level_change",
+          "db_tables": "players, chip_history",
+          "priority": "P0",
+          "notes": "전체 참가자 순위"
+        },
+        {
+          "id": 2,
+          "category": "Player Stats",
+          "name_ko": "플레이어 프로필",
+          "name_en": "Player Profile",
+          "code": "player_profile",
+          "data_source": "Manual / WSOP+ CSV",
+          "pre": "O",
+          "live": "O",
+          "auto": "-",
+          "trigger": "manual_trigger",
+          "db_tables": "players",
+          "priority": "P1",
+          "notes": "개인 프로필 정보"
+        },
+        {
+          "id": 3,
+          "category": "Hand Info",
+          "name_ko": "프리미엄 핸드",
+          "name_en": "Premium Hand",
+          "code": "premium_hand",
+          "data_source": "pokerGFX",
+          "pre": "-",
+          "live": "O",
+          "auto": "O",
+          "trigger": "hand_rank >= full_house",
+          "db_tables": "hands, hand_results",
+          "priority": "P0",
+          "notes": "Full House 이상 핸드"
+        }
+      ]
+    }
+  ]
+}

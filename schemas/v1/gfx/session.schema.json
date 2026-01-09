@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://automation-hub/schemas/v1/gfx/session",
+  "title": "PokerGFX Session",
+  "description": "PokerGFX에서 내보낸 세션 데이터 (최상위 구조)",
+  "type": "object",
+  "required": ["ID", "Hands"],
+  "properties": {
+    "ID": {
+      "type": "integer",
+      "description": "PokerGFX 세션 고유 ID (예: 638961999170907267)"
+    },
+    "CreatedDateTimeUTC": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "세션 생성 시간 (ISO 8601)"
+    },
+    "EventTitle": {
+      "type": ["string", "null"],
+      "maxLength": 255,
+      "description": "이벤트 제목 (예: WSOP 2025 Main Event)"
+    },
+    "Type": {
+      "type": "string",
+      "enum": ["FEATURE_TABLE", "CASH", "TOURNAMENT"],
+      "default": "FEATURE_TABLE",
+      "description": "테이블 타입"
+    },
+    "SoftwareVersion": {
+      "type": ["string", "null"],
+      "maxLength": 50,
+      "description": "PokerGFX 소프트웨어 버전"
+    },
+    "Payouts": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "integer"
+      },
+      "description": "페이아웃 배열 (금액 리스트)"
+    },
+    "Hands": {
+      "type": "array",
+      "items": {
+        "$ref": "hand.schema.json"
+      },
+      "description": "핸드 배열"
+    }
+  },
+  "additionalProperties": true
+}

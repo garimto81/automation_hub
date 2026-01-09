@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WSOP Automation Schema Registry",
+  "version": "1.0.0",
+  "description": "4개 프로젝트 통합 스키마 레지스트리 (automation_hub, automation_ae, automation_feature_table, automation_sub)",
+  "baseUri": "https://automation-hub/schemas/v1",
+  "schemas": {
+    "common.enums": {
+      "path": "v1/common/enums.schema.json",
+      "version": "1.0.0",
+      "description": "모든 프로젝트 공유 enum 타입",
+      "usedBy": ["gfx.*", "wsop.*", "render.*"]
+    },
+    "common.card": {
+      "path": "v1/common/card.schema.json",
+      "version": "1.0.0",
+      "description": "플레잉 카드 포맷 (As, Kh, Td 등)"
+    },
+    "gfx.session": {
+      "path": "v1/gfx/session.schema.json",
+      "version": "1.0.0",
+      "source": "automation_ae",
+      "dbTable": "poker_sessions",
+      "description": "PokerGFX 세션 최상위 구조"
+    },
+    "gfx.hand": {
+      "path": "v1/gfx/hand.schema.json",
+      "version": "1.0.0",
+      "source": "automation_ae",
+      "dbTable": "poker_hands",
+      "description": "포커 핸드 데이터"
+    },
+    "gfx.player": {
+      "path": "v1/gfx/player.schema.json",
+      "version": "1.0.0",
+      "source": "automation_ae",
+      "dbTable": "poker_players",
+      "description": "핸드 내 플레이어 정보"
+    },
+    "gfx.event": {
+      "path": "v1/gfx/event.schema.json",
+      "version": "1.0.0",
+      "source": "automation_ae",
+      "dbTable": "poker_events",
+      "description": "게임 이벤트 (베팅, 보드카드 등)"
+    },
+    "wsop.tournament": {
+      "path": "v1/wsop/tournament.schema.json",
+      "version": "1.0.0",
+      "source": "automation_hub",
+      "dbTable": "tournaments",
+      "description": "WSOP+ CSV 토너먼트 정보"
+    },
+    "wsop.blind_level": {
+      "path": "v1/wsop/blind_level.schema.json",
+      "version": "1.0.0",
+      "source": "automation_hub",
+      "description": "블라인드 레벨 구조"
+    },
+    "render.instruction": {
+      "path": "v1/render/instruction.schema.json",
+      "version": "1.0.0",
+      "source": "automation_hub",
+      "dbTable": "render_instructions",
+      "description": "렌더링 지시서 (sub -> ae)"
+    },
+    "caption.types": {
+      "path": "v1/caption/types.schema.json",
+      "version": "1.0.0",
+      "source": "automation_sub",
+      "description": "26개 자막 타입 정의"
+    }
+  },
+  "migrations": [],
+  "lastUpdated": "2025-01-08T00:00:00Z"
+}
