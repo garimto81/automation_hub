@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>PRD-0005: 3-App 물리적 배포 아키텍처</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #ffffff;
+            padding: 16px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1A4D8C;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .subtitle {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        .app1 { background: #E3F2FD; border: 1px solid #1565C0; }
+        .app2 { background: #E8F5E9; border: 1px solid #388E3C; }
+        .app3 { background: #FFF3E0; border: 1px solid #F57C00; }
+        .infra { background: #F3E5F5; border: 1px solid #7B1FA2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>3-App 물리적 배포 아키텍처</h1>
+        <div class="subtitle">GFX PC -> NAS -> App 1 (Watcher) -> DB -> App 2 (Frontend) -> App 3 (Render)</div>
+
+        <div class="mermaid">
+flowchart TB
+    subgraph GFX["GFX PC"]
+        direction TB
+        PG["PokerGFX<br/>RFID 데이터"]
+    end
+
+    subgraph NAS["NAS (공유 스토리지)"]
+        direction TB
+        JSON["JSON 폴더<br/>\\\\NAS\\pokergfx"]
+        OUT["Output 폴더<br/>\\\\NAS\\output"]
+    end
+
+    subgraph App1["App 1: NAS Container"]
+        direction TB
+        W["JSONFileWatcher<br/>(PollingObserver 2초)"]
+        P["PokerGFXFileParser<br/>(JSON 파싱)"]
+        R1["HandsRepository<br/>(DB 저장)"]
+        W --> P --> R1
+    end
+
+    subgraph Infra["공유 인프라"]
+        direction TB
+        DB[("PostgreSQL<br/>wsop_automation")]
+        Redis[("Redis<br/>(v2.0 선택)")]
+    end
+
+    subgraph App2["App 2: 프런트 서버"]
+        direction TB
+        React["React Frontend<br/>:3000 / :8080"]
+        API["FastAPI Backend<br/>REST + WebSocket"]
+        R2["RenderInstructionsRepo<br/>(작업 생성)"]
+        React --> API --> R2
+    end
+
+    subgraph App3["App 3: Nexrender 서버"]
+        direction TB
+        NX["Nexrender Worker<br/>(polling 5초)"]
+        AE["After Effects<br/>(.aep 템플릿)"]
+        R3["RenderOutputsRepo<br/>(결과 저장)"]
+        NX --> AE --> R3
+    end
+
+    PG -->|"JSON 생성"| JSON
+    JSON -->|"파일 감시"| W
+    R1 -->|"INSERT"| DB
+    DB -->|"SELECT"| API
+    R2 -->|"INSERT"| DB
+    DB -->|"polling"| NX
+    R3 -->|"INSERT"| DB
+    AE -->|"렌더링 출력"| OUT
+
+    style GFX fill:#ECEFF1,stroke:#607D8B,stroke-width:2px
+    style NAS fill:#FFF8E1,stroke:#F57C00,stroke-width:2px
+    style App1 fill:#E3F2FD,stroke:#1565C0,stroke-width:2px
+    style Infra fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px
+    style App2 fill:#E8F5E9,stroke:#388E3C,stroke-width:2px
+    style App3 fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px
+    style DB fill:#CE93D8,stroke:#7B1FA2
+    style Redis fill:#FFCCBC,stroke:#E64A19
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color app1"></div>
+                <span>App 1: NAS Watcher</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color app2"></div>
+                <span>App 2: Frontend + API</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color app3"></div>
+                <span>App 3: Nexrender</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color infra"></div>
+                <span>PostgreSQL / Redis</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#E3F2FD',
+                primaryTextColor: '#1A4D8C',
+                primaryBorderColor: '#1A4D8C',
+                lineColor: '#666',
+                fontSize: '12px'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 10
+            }
+        });
+    </script>
+</body>
+</html>

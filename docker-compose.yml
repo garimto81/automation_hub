@@ -26,6 +26,27 @@ services:
     restart: unless-stopped
 
   # ============================================================
+  # Redis (PRD-0001 v2.0, 선택적)
+  # ============================================================
+  redis:
+    image: redis:7-alpine
+    container_name: wsop-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - wsop-network
+    restart: unless-stopped
+    profiles:
+      - full  # docker-compose --profile full up
+
+  # ============================================================
   # 모니터링 대시보드 (선택적)
   # ============================================================
   monitor:
@@ -40,7 +61,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-wsop_automation}
     ports:
-      - "8080:8080"
+      - "8081:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -48,10 +69,110 @@ services:
       - wsop-network
     restart: unless-stopped
     profiles:
-      - monitor  # docker-compose --profile monitor up 으로 실행
+      - monitor  # docker-compose --profile monitor up
+
+  # ============================================================
+  # App 1: NAS Container (JSON Watcher + DB Migration)
+  # PRD-0005 Section 5.2
+  # ============================================================
+  nas-watcher:
+    build:
+      context: ../automation_feature_table
+      dockerfile: Dockerfile.watcher
+    container_name: wsop-nas-watcher
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-wsop_automation}
+      POKERGFX_MODE: json
+      POKERGFX_JSON_PATH: /nas/pokergfx
+      POKERGFX_POLLING_INTERVAL: ${POLLING_INTERVAL:-2}
+      POKERGFX_FILE_PATTERN: "*.json"
+      POKERGFX_PROCESSED_DB: /app/data/processed_files.json
+    volumes:
+      # NAS JSON 폴더 마운트 (읽기 전용)
+      # Windows UNC: //NAS/pokergfx -> /nas/pokergfx
+      - ${NAS_JSON_PATH:-//NAS/pokergfx}:/nas/pokergfx:ro
+      # 처리된 파일 기록 (영구 저장)
+      - nas-watcher-data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - wsop-network
+    restart: unless-stopped
+    profiles:
+      - production  # docker-compose --profile production up
+
+  # ============================================================
+  # App 2: Frontend + API (React + FastAPI)
+  # PRD-0005 Section 5.3
+  # ============================================================
+  frontend-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: wsop-frontend
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-wsop_automation}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      API_HOST: 0.0.0.0
+      API_PORT: 8080
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+    ports:
+      - "8080:8080"
+      - "3000:3000"  # React dev server (optional)
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - wsop-network
+    restart: unless-stopped
+    profiles:
+      - production  # docker-compose --profile production up
+
+  # ============================================================
+  # App 3: Nexrender (AE Rendering)
+  # PRD-0005 Section 5.4
+  # Note: Windows 전용 - After Effects 라이선스 필요
+  # ============================================================
+  # nexrender:
+  #   build:
+  #     context: ../automation_ae
+  #     dockerfile: Dockerfile.nexrender
+  #   container_name: wsop-nexrender
+  #   environment:
+  #     POSTGRES_HOST: postgres
+  #     POSTGRES_PORT: 5432
+  #     POSTGRES_USER: ${POSTGRES_USER:-postgres}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+  #     POSTGRES_DB: ${POSTGRES_DB:-wsop_automation}
+  #     AE_TEMPLATE_PATH: /templates
+  #     OUTPUT_PATH: /nas/output
+  #     POLLING_INTERVAL: 5
+  #   volumes:
+  #     - ${NAS_OUTPUT_PATH:-//NAS/output}:/nas/output
+  #     - ./templates:/templates:ro
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - wsop-network
+  #   restart: unless-stopped
+  #   profiles:
+  #     - nexrender  # Windows 호스트에서 별도 실행
 
 volumes:
   postgres-data:
+  redis-data:
+  nas-watcher-data:
 
 networks:
   wsop-network:

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>PRD-0005: 네트워크 토폴로지</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #ffffff;
+            padding: 16px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1A4D8C;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .subtitle {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+        .port-table {
+            margin-top: 24px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .port-table th, .port-table td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 12px;
+        }
+        .port-table th {
+            background: #1A4D8C;
+            color: white;
+            font-weight: 600;
+        }
+        .port-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .port-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .tcp { background: #E3F2FD; color: #1565C0; }
+        .http { background: #E8F5E9; color: #388E3C; }
+        .smb { background: #FFF3E0; color: #EF6C00; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>네트워크 토폴로지</h1>
+        <div class="subtitle">Production Network (172.16.x.x) - 서버 간 통신 흐름</div>
+
+        <div class="mermaid">
+flowchart TB
+    subgraph Network["Production Network"]
+        direction TB
+
+        subgraph Row1[" "]
+            direction LR
+            GFX["GFX PC<br/>172.16.1.10"]
+            NAS["NAS<br/>172.16.1.5<br/>SMB:445"]
+            APP1["App 1<br/>172.16.1.20<br/>(Container)"]
+        end
+
+        subgraph Row2[" "]
+            direction LR
+            DB[("PostgreSQL<br/>172.16.1.100<br/>TCP:5432")]
+        end
+
+        subgraph Row3[" "]
+            direction LR
+            APP2["App 2<br/>172.16.1.30<br/>HTTP:8080"]
+            REDIS[("Redis<br/>172.16.1.101<br/>TCP:6379")]
+            APP3["App 3<br/>172.16.1.40<br/>Nexrender"]
+        end
+    end
+
+    GFX -->|"JSON 파일<br/>SMB:445"| NAS
+    NAS -->|"파일 감시<br/>SMB:445"| APP1
+    APP1 -->|"DB 저장<br/>TCP:5432"| DB
+    DB -->|"조회<br/>TCP:5432"| APP2
+    APP2 -->|"작업 큐<br/>TCP:6379"| REDIS
+    REDIS -->|"작업 수신<br/>TCP:6379"| APP3
+    APP3 -->|"상태 업데이트<br/>TCP:5432"| DB
+    APP3 -->|"출력 저장<br/>SMB:445"| NAS
+
+    style Network fill:#FAFAFA,stroke:#1A4D8C,stroke-width:2px
+    style Row1 fill:none,stroke:none
+    style Row2 fill:none,stroke:none
+    style Row3 fill:none,stroke:none
+    style GFX fill:#ECEFF1,stroke:#607D8B,stroke-width:2px
+    style NAS fill:#FFF8E1,stroke:#F57C00,stroke-width:2px
+    style APP1 fill:#E3F2FD,stroke:#1565C0,stroke-width:2px
+    style DB fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px
+    style APP2 fill:#E8F5E9,stroke:#388E3C,stroke-width:2px
+    style REDIS fill:#FFCCBC,stroke:#E64A19,stroke-width:2px
+    style APP3 fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px
+        </div>
+
+        <table class="port-table">
+            <thead>
+                <tr>
+                    <th>서비스</th>
+                    <th>포트</th>
+                    <th>프로토콜</th>
+                    <th>용도</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>NAS SMB</td>
+                    <td>445</td>
+                    <td><span class="port-badge smb">SMB</span></td>
+                    <td>JSON/Output 파일 공유</td>
+                </tr>
+                <tr>
+                    <td>PostgreSQL</td>
+                    <td>5432</td>
+                    <td><span class="port-badge tcp">TCP</span></td>
+                    <td>DB 연결 (모든 앱)</td>
+                </tr>
+                <tr>
+                    <td>Frontend API</td>
+                    <td>8080</td>
+                    <td><span class="port-badge http">HTTP</span></td>
+                    <td>REST + WebSocket</td>
+                </tr>
+                <tr>
+                    <td>Frontend Dev</td>
+                    <td>3000</td>
+                    <td><span class="port-badge http">HTTP</span></td>
+                    <td>React 개발 서버</td>
+                </tr>
+                <tr>
+                    <td>Redis</td>
+                    <td>6379</td>
+                    <td><span class="port-badge tcp">TCP</span></td>
+                    <td>작업 큐 (PRD-0001 v2.0)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#E3F2FD',
+                primaryTextColor: '#1A4D8C',
+                primaryBorderColor: '#1A4D8C',
+                lineColor: '#666',
+                fontSize: '11px'
+            },
+            flowchart: {
+                curve: 'basis',
+                padding: 10
+            }
+        });
+    </script>
+</body>
+</html>
