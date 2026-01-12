@@ -171,13 +171,43 @@ node scripts/apply-schema.mjs
 
 ---
 
-## 문서
+## 문서 관리 (중앙화 정책)
 
-| 유형 | 위치 |
+### 문서 작성 위치
+
+| 문서 유형 | 작성 위치 | 비고 |
+|----------|----------|------|
+| **Checklist** | `C:\claude\docs\unified\checklists\HUB\` | 필수 |
+| **PRD** | `C:\claude\docs\unified\prds\HUB\` | 신규 생성 시 |
+| **기술 명세** | `C:\claude\docs\unified\specs\HUB\` | 선택 |
+| Schedule | `docs/schedules/` | 로컬 유지 |
+| Schema | `docs/SCHEMA_DESIGN.md` | 로컬 유지 |
+
+### 중앙화 규칙
+
+| 규칙 | 내용 |
 |------|------|
-| PRD | `C:\claude\docs\unified\prds\HUB\` |
-| Checklist | `C:\claude\docs\unified\checklists\HUB\` |
-| Schedule | `docs/schedules/` |
-| Schema | `docs/SCHEMA_DESIGN.md` |
+| **신규 문서** | 반드시 `docs/unified/{type}/HUB/` 에 생성 |
+| **기존 문서 수정** | 중앙 위치로 이동 후 수정 |
+| **네이밍** | `HUB-NNNN-{slug}.md` 형식 사용 |
+| **로컬 금지** | `tasks/prds/`, `docs/checklists/` 신규 생성 금지 |
 
-> **참고**: PRD와 Checklist는 루트 프로젝트의 통합 폴더에서 관리됩니다.
+### PRD 현황 (6개)
+
+| ID | 제목 | 상태 |
+|----|------|:----:|
+| HUB-0001 | WSOP Automation Hub v2.0 (Redis, WebSocket) | Draft |
+| HUB-0002 | 충돌/중복 모니터링 시스템 | Draft |
+| HUB-0003 | 프로젝트 간 모델 통합 | Draft |
+| HUB-0004 | 통합 프론트엔드 대시보드 | Draft |
+| HUB-0005 | GG Production 자막 워크플로우 (3-App) | Draft |
+| HUB-0006 | MVP 일정 관리 시스템 | Draft |
+
+### 프로젝트 의존성
+
+```
+HUB (공유 인프라)
+├── FT (automation_feature_table) - 데이터 입력
+├── SUB (automation_sub) - 데이터 관리
+└── AE (automation_ae) - 렌더링 출력
+```
